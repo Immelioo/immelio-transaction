@@ -26,7 +26,7 @@ export default async function BiensPage({ searchParams }: Props) {
   const where: Record<string, unknown> = { disponible: true };
   if (params.type) where.type = params.type;
   if (params.transaction) where.transaction = params.transaction;
-  if (params.ville) where.ville = { contains: params.ville };
+  if (params.ville) where.ville = { contains: params.ville, mode: "insensitive" };
   if (params.prixMax) where.prix = { lte: parseFloat(params.prixMax) };
 
   const biens = await prisma.bien.findMany({

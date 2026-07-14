@@ -1,0 +1,212 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export default function ProLoginPage() {
+  const router = useRouter();
+  const [tab, setTab] = useState<"login" | "partenariat">("login");
+
+  // Login state
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Partenariat state
+  const [partForm, setPartForm] = useState({ nom: "", prenom: "", email: "", telephone: "", societe: "", ville: "", message: "" });
+  const [partStatus, setPartStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError("");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: loginForm.email, password: loginForm.password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Cookie HttpOnly défini par le serveur — pas de localStorage
+        router.push("/pro/dashboard");
+      } else {
+        setLoginError(data.error || "Identifiants incorrects");
+      }
+    } catch {
+      setLoginError("Erreur de connexion au serveur");
+    }
+    setLoginLoading(false);
+  }
+
+  async function handlePartenariat(e: React.FormEvent) {
+    e.preventDefault();
+    setPartStatus("loading");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nom: `${partForm.prenom} ${partForm.nom}`,
+          email: partForm.email,
+          telephone: partForm.telephone,
+          sujet: `Demande de partenariat - ${partForm.societe} (${partForm.ville})`,
+          message: partForm.message || `Demande de partenariat de ${partForm.societe} à ${partForm.ville}`,
+        }),
+      });
+      if (res.ok) setPartStatus("success");
+      else setPartStatus("error");
+    } catch {
+      setPartStatus("error");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12">
+      <div className="max-w-lg mx-auto w-full px-4">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-xl">I</span>
+            </div>
+            <div>
+              <span className="text-2xl font-bold text-primary">Immelio</span>
+              <span className="text-2xl font-bold text-accent"> Transaction</span>
+            </div>
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900 mt-6">Espace Partenaires</h1>
+          <p className="text-gray-600 mt-2">Promoteurs, agents, courtiers — rejoignez notre réseau national</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex mb-6 bg-white rounded-xl border border-gray-100 p-1">
+          <button
+            onClick={() => setTab("login")}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              tab === "login" ? "bg-primary text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Se connecter
+          </button>
+          <button
+            onClick={() => setTab("partenariat")}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              tab === "partenariat" ? "bg-accent text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Devenir partenaire
+          </button>
+        </div>
+
+        {/* Login Form */}
+        {tab === "login" && (
+          <form onSubmit={handleLogin} className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm space-y-4">
+            {loginError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {loginError}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email professionnel</label>
+              <input required type="email" value={loginForm.email}
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="partenaire@entreprise.fr" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+              <input required type="password" value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="Votre mot de passe" />
+            </div>
+            <button type="submit" disabled={loginLoading}
+              className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50">
+              {loginLoading ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+        )}
+
+        {/* Partenariat Form */}
+        {tab === "partenariat" && (
+          <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+            {partStatus === "success" ? (
+              <div className="text-center py-6">
+                <svg className="w-14 h-14 text-green-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Demande envoyée !</h3>
+                <p className="text-gray-600">Notre équipe vous contactera sous 48h pour discuter de votre partenariat.</p>
+                <button onClick={() => { setPartStatus("idle"); setTab("login"); }} className="mt-4 text-primary font-medium hover:underline">
+                  Retour à la connexion
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handlePartenariat} className="space-y-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Remplissez ce formulaire et nous vous recontacterons pour finaliser votre partenariat.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                    <input required value={partForm.prenom} onChange={(e) => setPartForm({ ...partForm, prenom: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                    <input required value={partForm.nom} onChange={(e) => setPartForm({ ...partForm, nom: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Société / Structure *</label>
+                  <input required value={partForm.societe} onChange={(e) => setPartForm({ ...partForm, societe: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Nom du promoteur, agence, cabinet..." />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                    <input required type="email" value={partForm.email} onChange={(e) => setPartForm({ ...partForm, email: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
+                    <input required type="tel" value={partForm.telephone} onChange={(e) => setPartForm({ ...partForm, telephone: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                  <input required value={partForm.ville} onChange={(e) => setPartForm({ ...partForm, ville: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Ville d'exercice" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Message (optionnel)</label>
+                  <textarea rows={3} value={partForm.message} onChange={(e) => setPartForm({ ...partForm, message: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent resize-none"
+                    placeholder="Décrivez votre activité, le type de partenariat souhaité..." />
+                </div>
+                <button type="submit" disabled={partStatus === "loading"}
+                  className="w-full py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50">
+                  {partStatus === "loading" ? "Envoi..." : "Envoyer ma demande de partenariat"}
+                </button>
+                {partStatus === "error" && <p className="text-sm text-red-500 text-center">Erreur lors de l&apos;envoi. Réessayez.</p>}
+              </form>
+            )}
+          </div>
+        )}
+
+        <p className="text-center mt-6">
+          <Link href="/" className="text-sm text-gray-500 hover:text-primary">
+            Retour au site
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

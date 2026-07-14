@@ -1,0 +1,291 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  password            String
+  nom                 String
+  prenom              String
+  telephone           String?
+  role                String               @default("CLIENT")
+  codeAcces           String?              @unique
+  entreprise          String?
+  contacte            Boolean              @default(false)
+  dateContact         DateTime?
+  inviteToken         String?              @unique
+  inviteTokenExpiry   DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  demandesRecherche   DemandeRecherche[]
+  demandesVisite      DemandeVisite[]
+  documents           Document[]
+  documentsPartenaire DocumentPartenaire[]
+  messagesRecus       Message[]            @relation("MessageDestinataire")
+  messagesEnvoyes     Message[]            @relation("MessageExpéditeur")
+  optionsLots         OptionLot[]
+}
+
+model Bien {
+  id                   String          @id @default(cuid())
+  titre                String
+  description          String
+  type                 String
+  transaction          String
+  prix                 Float
+  surface              Float
+  nbPieces             Int
+  nbChambres           Int
+  etage                Int?
+  adresse              String
+  codePostal           String
+  ville                String
+  latitude             Float?
+  longitude            Float?
+  disponible           Boolean         @default(true)
+  enVedette            Boolean         @default(false)
+  dpe                  String?
+  ges                  String?
+  anneeConstruction    Int?
+  parking              Boolean         @default(false)
+  balcon               Boolean         @default(false)
+  terrasse             Boolean         @default(false)
+  ascenseur            Boolean         @default(false)
+  gardien              Boolean         @default(false)
+  piscine              Boolean         @default(false)
+  cave                 Boolean         @default(false)
+  meuble               Boolean         @default(false)
+  chargesmensuelles    Float?
+  honoraires           Float?
+  commissionPartenaire Float?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  demandesVisite       DemandeVisite[]
+  documents            Document[]
+  photos               Photo[]
+}
+
+model Photo {
+  id     String  @id @default(cuid())
+  url    String
+  alt    String?
+  ordre  Int     @default(0)
+  bienId String
+  bien   Bien    @relation(fields: [bienId], references: [id], onDelete: Cascade)
+}
+
+model DemandeRecherche {
+  id          String   @id @default(cuid())
+  type        String
+  transaction String
+  budgetMin   Float?
+  budgetMax   Float?
+  surfaceMin  Float?
+  surfaceMax  Float?
+  nbPiecesMin Int?
+  ville       String?
+  codePostal  String?
+  description String?
+  statut      String   @default("NOUVELLE")
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model DemandeVisite {
+  id            String   @id @default(cuid())
+  datesouhaitee DateTime
+  creneau       String
+  message       String?
+  statut        String   @default("EN_ATTENTE")
+  userId        String
+  bienId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  bien          Bien     @relation(fields: [bienId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  nom       String
+  type      String
+  url       String
+  taille    Int
+  userId    String
+  bienId    String?
+  createdAt DateTime @default(now())
+  bien      Bien?    @relation(fields: [bienId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  sujet          String
+  contenu        String
+  lu             Boolean  @default(false)
+  expediteurId   String
+  destinataireId String
+  createdAt      DateTime @default(now())
+  destinataire   User     @relation("MessageDestinataire", fields: [destinataireId], references: [id])
+  expediteur     User     @relation("MessageExpéditeur", fields: [expediteurId], references: [id])
+}
+
+model Programme {
+  id                   String              @id @default(cuid())
+  nom                  String
+  description          String
+  promoteur            String
+  adresse              String
+  codePostal           String
+  ville                String
+  datelivraison        String?
+  statut               String              @default("EN_COMMERCIALISATION")
+  nbLotsTotal          Int                 @default(0)
+  prixMin              Float?
+  prixMax              Float?
+  surfaceMin           Float?
+  surfaceMax           Float?
+  normeRT              String?
+  parking              Boolean             @default(false)
+  terrasse             Boolean             @default(false)
+  balcon               Boolean             @default(false)
+  piscine              Boolean             @default(false)
+  jardin               Boolean             @default(false)
+  enVedette            Boolean             @default(false)
+  commissionPartenaire Float?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  documentsProgramme   DocumentProgramme[]
+  lots                 Lot[]
+  photos               PhotoProgramme[]
+}
+
+model Lot {
+  id          String      @id @default(cuid())
+  numero      String
+  type        String
+  surface     Float
+  etage       Int
+  orientation String?
+  prix        Float
+  nbChambres  Int
+  terrasse    Float?
+  balcon      Float?
+  jardin      Float?
+  parking     Boolean     @default(false)
+  statut      String      @default("DISPONIBLE")
+  planUrl     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  programmeId String
+  programme   Programme   @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  options     OptionLot[]
+}
+
+model OptionLot {
+  id             String    @id @default(cuid())
+  statut         String    @default("EN_COURS")
+  message        String?
+  dateExpiration DateTime?
+  lotId          String
+  userId         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id])
+  lot            Lot       @relation(fields: [lotId], references: [id], onDelete: Cascade)
+}
+
+model PhotoProgramme {
+  id          String    @id @default(cuid())
+  url         String
+  alt         String?
+  ordre       Int       @default(0)
+  type        String    @default("PHOTO")
+  programmeId String
+  programme   Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+}
+
+model DocumentProgramme {
+  id          String    @id @default(cuid())
+  nom         String
+  type        String
+  url         String
+  taille      Int       @default(0)
+  public      Boolean   @default(true)
+  programmeId String
+  createdAt   DateTime  @default(now())
+  programme   Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+}
+
+model DocumentPartenaire {
+  id          String   @id @default(cuid())
+  nom         String
+  type        String
+  url         String
+  taille      Int      @default(0)
+  statut      String   @default("ENVOYE")
+  commentaire String?
+  userId      String
+  bienId      String?
+  lotId       String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Lead {
+  id        String     @id @default(cuid())
+  nom       String
+  prenom    String
+  email     String
+  telephone String?
+  source    String
+  statut    String     @default("NOUVEAU")
+  notes     String?
+  assigneA  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  activites Activite[]
+}
+
+model Activite {
+  id           String    @id @default(cuid())
+  type         String
+  description  String
+  dateEcheance DateTime?
+  effectuee    Boolean   @default(false)
+  leadId       String
+  createdAt    DateTime  @default(now())
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Temoignage {
+  id        String   @id @default(cuid())
+  nom       String
+  ville     String
+  texte     String
+  note      Int      @default(5)
+  ordre     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  value       String
+  group       String
+  inputType   String   @default("text")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { verifyAuth, unauthorizedResponse, rateLimitResponse } from "@/lib/auth";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { logger } from "@/lib/logger";
-import { cloudinary } from "@/lib/cloudinary";
+import { getCloudinary } from "@/lib/cloudinary";
 
 // Types MIME autorisés
 const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const base64 = Buffer.from(bytes).toString("base64");
     const dataUri = `data:${mimeType};base64,${base64}`;
 
-    const result = await cloudinary.uploader.upload(dataUri, {
+    const result = await getCloudinary().uploader.upload(dataUri, {
       folder: uploadFolder,
       public_id: publicId,
       resource_type: "auto", // détecte image vs PDF automatiquement

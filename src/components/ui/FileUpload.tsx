@@ -14,9 +14,10 @@ interface Props {
   multiple?: boolean;
   label: string;
   onUpload: (files: UploadedFile[]) => void;
+  showUploadedList?: boolean;
 }
 
-export default function FileUpload({ type, accept, multiple = false, label, onUpload }: Props) {
+export default function FileUpload({ type, accept, multiple = false, label, onUpload, showUploadedList = true }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +130,7 @@ export default function FileUpload({ type, accept, multiple = false, label, onUp
       )}
 
       {/* Fichiers uploadés */}
-      {uploadedFiles.length > 0 && (
+      {showUploadedList && uploadedFiles.length > 0 && (
         <div className="mt-3 space-y-2">
           {uploadedFiles.map((file, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

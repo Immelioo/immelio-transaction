@@ -41,7 +41,6 @@ export default function NouveauProgrammePage() {
     documents: [] as { url: string; nom: string; taille: number; type: string }[],
   });
   const [lots, setLots] = useState<LotForm[]>([]);
-  const [docTypes, setDocTypes] = useState<Record<number, string>>({});
 
   function update(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -59,6 +58,31 @@ export default function NouveauProgrammePage() {
     setLots((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function movePhoto(index: number, direction: -1 | 1) {
+    setForm((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.photos.length) return prev;
+      const photos = [...prev.photos];
+      [photos[index], photos[target]] = [photos[target], photos[index]];
+      return { ...prev, photos };
+    });
+  }
+
+  function removePhoto(index: number) {
+    setForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
+  }
+
+  function updateDocumentType(index: number, type: string) {
+    setForm((prev) => ({
+      ...prev,
+      documents: prev.documents.map((doc, i) => (i === index ? { ...doc, type } : doc)),
+    }));
+  }
+
+  function removeDocument(index: number) {
+    setForm((prev) => ({ ...prev, documents: prev.documents.filter((_, i) => i !== index) }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
@@ -68,10 +92,6 @@ export default function NouveauProgrammePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          documents: form.documents.map((d, i) => ({
-            ...d,
-            type: docTypes[i] || "PLAQUETTE",
-          })),
           lots,
         }),
       });
@@ -235,8 +255,47 @@ export default function NouveauProgrammePage() {
             accept="image/jpeg,image/png,image/heic,image/heif,image/webp"
             multiple={true}
             label="Ajouter des photos / perspectives"
+            showUploadedList={false}
             onUpload={(files) => setForm((prev) => ({ ...prev, photos: files.map(f => ({ url: f.url, nom: f.nom })) }))}
           />
+          {form.photos.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {form.photos.map((photo, index) => (
+                <div key={`${photo.url}-${index}`} className="relative group rounded-xl overflow-hidden border border-gray-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={photo.nom || form.nom || "Programme"} className="w-full h-28 object-cover" />
+                  {index === 0 && (
+                    <span className="absolute top-1.5 left-1.5 text-xs font-semibold bg-accent text-white px-2 py-0.5 rounded-full">
+                      Image vitrine
+                    </span>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" disabled={index === 0} onClick={() => movePhoto(index, -1)}
+                      className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button type="button" onClick={() => removePhoto(index)}
+                      className="p-1 text-red-400 hover:text-red-300">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <button type="button" disabled={index === form.photos.length - 1} onClick={() => movePhoto(index, 1)}
+                      className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-gray-400 mt-2">
+            La première photo est utilisée comme image vitrine dans le site public, le portail partenaire et l&apos;admin.
+          </p>
         </div>
 
         {/* Documents */}
@@ -247,6 +306,7 @@ export default function NouveauProgrammePage() {
             accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.webp"
             multiple={true}
             label="Ajouter des documents (plaquette, grille de prix, notice...)"
+            showUploadedList={false}
             onUpload={(files) => setForm((prev) => ({
               ...prev,
               documents: files.map(f => ({ url: f.url, nom: f.nom, taille: f.taille, type: "PLAQUETTE" })),
@@ -255,10 +315,10 @@ export default function NouveauProgrammePage() {
           {form.documents.length > 0 && (
             <div className="mt-3 space-y-2">
               {form.documents.map((doc, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={`${doc.url}-${i}`} className="flex items-center gap-3">
                   <span className="text-sm text-gray-700 truncate flex-1">{doc.nom}</span>
-                  <select value={docTypes[i] || "PLAQUETTE"}
-                    onChange={(e) => setDocTypes((prev) => ({ ...prev, [i]: e.target.value }))}
+                  <select value={doc.type}
+                    onChange={(e) => updateDocumentType(i, e.target.value)}
                     className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
                     <option value="PLAQUETTE">Plaquette</option>
                     <option value="PLAN">Plan</option>
@@ -266,6 +326,12 @@ export default function NouveauProgrammePage() {
                     <option value="GRILLE_PRIX">Grille de prix</option>
                     <option value="AUTRE">Autre</option>
                   </select>
+                  <button type="button" onClick={() => removeDocument(i)}
+                    className="text-red-400 hover:text-red-600 p-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
@@ -371,6 +437,12 @@ export default function NouveauProgrammePage() {
                         className="w-4 h-4 text-primary rounded" />
                       <span className="text-sm text-gray-700">Parking</span>
                     </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs text-gray-500 mb-1">URL du plan</label>
+                    <input value={lot.planUrl} onChange={(e) => updateLot(i, "planUrl", e.target.value)}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                   </div>
                 </div>
               </div>

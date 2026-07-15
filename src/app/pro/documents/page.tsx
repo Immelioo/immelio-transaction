@@ -16,9 +16,12 @@ interface Document {
 const typeLabels: Record<string, string> = {
   MANDAT: "Mandat",
   COMPROMIS: "Compromis",
-  BAIL: "Bail",
-  DIAGNOSTIC: "Diagnostic",
-  FACTURE: "Facture",
+  OFFRE: "Offre",
+  RESERVATION: "Réservation",
+  FINANCEMENT: "Financement",
+  CARTE_T: "Carte T",
+  KBIS: "KBIS",
+  CONTRAT_PARTENARIAT: "Contrat de partenariat",
   AUTRE: "Autre",
 };
 
@@ -109,7 +112,7 @@ export default function ProDocumentsPage() {
                     </p>
                   </div>
                 </div>
-                <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                <a href={`/api/documents-partenaire/${doc.id}`} download
                   className="px-4 py-2 text-primary border border-primary rounded-lg text-sm font-medium hover:bg-primary hover:text-white transition-colors">
                   Télécharger
                 </a>

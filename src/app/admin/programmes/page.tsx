@@ -15,6 +15,7 @@ export default async function AdminProgrammesPage() {
     include: {
       _count: { select: { lots: true } },
       lots: { where: { statut: "DISPONIBLE" }, select: { id: true } },
+      photos: { take: 1, orderBy: { ordre: "asc" } },
     },
   });
 
@@ -57,7 +58,30 @@ export default async function AdminProgrammesPage() {
                 return (
                   <tr key={prog.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4">
-                      <p className="font-medium text-gray-900">{prog.nom}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
+                          {prog.photos[0] ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={prog.photos[0].url}
+                              alt={prog.nom}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{prog.nom}</p>
+                          <p className="text-xs text-gray-500">
+                            {prog.photos[0] ? "Image vitrine configurée" : "Aucune image vitrine"}
+                          </p>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">{prog.ville}</td>
                     <td className="py-3 px-4 text-sm text-gray-600">{prog.promoteur}</td>

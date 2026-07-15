@@ -35,7 +35,7 @@ export default async function ProDashboardPage() {
 
   const [biensDisponibles, programmesActifs, options, documentsEnvoyes, documentsPartenaire] =
     await Promise.all([
-      prisma.bien.count({ where: { disponible: true } }),
+      prisma.bien.count({ where: { statut: { not: "VENDU" } } }),
       prisma.programme.count({ where: { statut: "EN_COMMERCIALISATION" } }),
       user
         ? prisma.optionLot.findMany({

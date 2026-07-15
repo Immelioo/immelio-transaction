@@ -5,7 +5,7 @@ import PartenaireContactButton from "./PartenaireContactButton";
 export default async function AdminDashboardPage() {
   const [totalBiens, totalDisponibles, totalDemandes, totalVisites, totalPartenaires, totalLeads, visitesPending, demandesNouvelles, optionsEnCours] = await Promise.all([
     prisma.bien.count(),
-    prisma.bien.count({ where: { disponible: true } }),
+    prisma.bien.count({ where: { statut: { not: "VENDU" } } }),
     prisma.demandeRecherche.count(),
     prisma.demandeVisite.count(),
     prisma.user.count({ where: { role: "PARTENAIRE" } }),

@@ -6,8 +6,11 @@ const TYPE_LABELS: Record<string, string> = {
   MANDAT: "Mandat",
   COMPROMIS: "Compromis",
   OFFRE: "Offre",
-  RESERVATION: "Reservation",
+  RESERVATION: "Réservation",
   FINANCEMENT: "Financement",
+  CARTE_T: "Carte T",
+  KBIS: "KBIS",
+  CONTRAT_PARTENARIAT: "Contrat de partenariat",
   AUTRE: "Autre",
 };
 
@@ -83,9 +86,8 @@ export default async function AdminDocumentsProPage() {
                     <div className="flex items-center gap-2">
                       <DocumentStatutActions documentId={doc.id} currentStatut={doc.statut} />
                       <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href={`/api/documents-partenaire/${doc.id}`}
+                        download
                         className="px-2 py-1 text-xs font-medium text-primary hover:text-primary-dark transition-colors"
                       >
                         Telecharger

@@ -165,9 +165,8 @@ export default async function ProProgrammesPage() {
                               {programme.documentsProgramme.map((doc) => (
                                 <a
                                   key={doc.id}
-                                  href={doc.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                  href={`/api/programmes/${programme.id}/documents/${doc.id}`}
+                                  download
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm hover:bg-primary/5 hover:border-primary/30 transition-colors group/doc"
                                 >
                                   <svg className="w-4 h-4 text-gray-400 group-hover/doc:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

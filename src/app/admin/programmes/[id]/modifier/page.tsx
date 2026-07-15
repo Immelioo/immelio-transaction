@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import FileUpload from "@/components/ui/FileUpload";
@@ -23,17 +23,21 @@ interface LotForm {
   nbChambres: string;
   statut: string;
   orientation: string;
+  terrasse: string;
+  balcon: string;
+  jardin: string;
+  parking: boolean;
+  planUrl: string;
 }
 
-interface ExistingPhoto {
-  id: string;
+interface MediaPhoto {
+  key: string;
   url: string;
-  alt: string;
-  ordre: number;
+  nom: string;
 }
 
-interface ExistingDoc {
-  id: string;
+interface MediaDocument {
+  key: string;
   url: string;
   nom: string;
   type: string;
@@ -55,6 +59,11 @@ const emptyLot: LotForm = {
   nbChambres: "1",
   statut: "DISPONIBLE",
   orientation: "",
+  terrasse: "",
+  balcon: "",
+  jardin: "",
+  parking: false,
+  planUrl: "",
 };
 
 export default function ModifierProgrammePage() {
@@ -64,11 +73,8 @@ export default function ModifierProgrammePage() {
 
   const [status, setStatus] = useState<"idle" | "loading" | "saving" | "success" | "error">("loading");
   const [lots, setLots] = useState<LotForm[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
-  const [newPhotos, setNewPhotos] = useState<UploadedFile[]>([]);
-  const [existingDocs, setExistingDocs] = useState<ExistingDoc[]>([]);
-  const [newDocs, setNewDocs] = useState<UploadedFile[]>([]);
-  const [newDocTypes, setNewDocTypes] = useState<Record<number, string>>({});
+  const [photos, setPhotos] = useState<MediaPhoto[]>([]);
+  const [documents, setDocuments] = useState<MediaDocument[]>([]);
   const [form, setForm] = useState({
     nom: "",
     description: "",
@@ -97,7 +103,8 @@ export default function ModifierProgrammePage() {
     async function fetchProgramme() {
       try {
         const res = await fetch(`/api/programmes/${id}`, { credentials: "include" });
-        if (!res.ok) throw new Error("Not found");
+        if (!res.ok) throw new Error("Programme introuvable");
+
         const data = await res.json();
         setForm({
           nom: data.nom || "",
@@ -122,41 +129,57 @@ export default function ModifierProgrammePage() {
           enVedette: data.enVedette || false,
           commissionPartenaire: data.commissionPartenaire?.toString() || "",
         });
-        if (data.lots && Array.isArray(data.lots)) {
-          setLots(
-            data.lots.map((lot: Record<string, unknown>) => ({
-              numero: (lot.numero as string) || "",
-              type: (lot.type as string) || "T2",
-              surface: lot.surface?.toString() || "",
-              etage: lot.etage?.toString() || "0",
-              prix: lot.prix?.toString() || "",
-              nbChambres: lot.nbChambres?.toString() || "1",
-              statut: (lot.statut as string) || "DISPONIBLE",
-              orientation: (lot.orientation as string) || "",
-            }))
-          );
-        }
-        if (data.photos && Array.isArray(data.photos)) {
-          setExistingPhotos(
-            [...data.photos].sort((a: ExistingPhoto, b: ExistingPhoto) => a.ordre - b.ordre)
-          );
-        }
-        if (data.documentsProgramme && Array.isArray(data.documentsProgramme)) {
-          setExistingDocs(
-            data.documentsProgramme.map((d: ExistingDoc) => ({
-              id: d.id,
-              url: d.url,
-              nom: d.nom,
-              type: d.type,
-              taille: d.taille || 0,
-            }))
-          );
-        }
+
+        setLots(
+          Array.isArray(data.lots)
+            ? data.lots.map((lot: Record<string, unknown>) => ({
+                numero: (lot.numero as string) || "",
+                type: (lot.type as string) || "T2",
+                surface: lot.surface?.toString() || "",
+                etage: lot.etage?.toString() || "0",
+                prix: lot.prix?.toString() || "",
+                nbChambres: lot.nbChambres?.toString() || "0",
+                statut: (lot.statut as string) || "DISPONIBLE",
+                orientation: (lot.orientation as string) || "",
+                terrasse: lot.terrasse?.toString() || "",
+                balcon: lot.balcon?.toString() || "",
+                jardin: lot.jardin?.toString() || "",
+                parking: Boolean(lot.parking),
+                planUrl: (lot.planUrl as string) || "",
+              }))
+            : []
+        );
+
+        setPhotos(
+          Array.isArray(data.photos)
+            ? [...data.photos]
+                .sort((a: { ordre: number }, b: { ordre: number }) => a.ordre - b.ordre)
+                .map((photo: { id: string; url: string; alt?: string | null }) => ({
+                  key: photo.id,
+                  url: photo.url,
+                  nom: photo.alt || data.nom || "Programme",
+                }))
+            : []
+        );
+
+        setDocuments(
+          Array.isArray(data.documentsProgramme)
+            ? data.documentsProgramme.map((doc: { id: string; url: string; nom: string; type: string; taille?: number }) => ({
+                key: doc.id,
+                url: doc.url,
+                nom: doc.nom,
+                type: doc.type,
+                taille: doc.taille || 0,
+              }))
+            : []
+        );
+
         setStatus("idle");
       } catch {
         setStatus("error");
       }
     }
+
     fetchProgramme();
   }, [id]);
 
@@ -164,7 +187,7 @@ export default function ModifierProgrammePage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function updateLot(index: number, field: keyof LotForm, value: string) {
+  function updateLot(index: number, field: keyof LotForm, value: string | boolean) {
     setLots((prev) => prev.map((lot, i) => (i === index ? { ...lot, [field]: value } : lot)));
   }
 
@@ -176,48 +199,89 @@ export default function ModifierProgrammePage() {
     setLots((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function movePhoto(index: number, dir: -1 | 1) {
-    setExistingPhotos((prev) => {
+  function movePhoto(index: number, direction: -1 | 1) {
+    setPhotos((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
       const next = [...prev];
-      const target = index + dir;
-      if (target < 0 || target >= next.length) return next;
       [next[index], next[target]] = [next[target], next[index]];
       return next;
     });
   }
 
-  function removeExistingPhoto(index: number) {
-    setExistingPhotos((prev) => prev.filter((_, i) => i !== index));
+  function removePhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function removeExistingDoc(index: number) {
-    setExistingDocs((prev) => prev.filter((_, i) => i !== index));
+  function mergeUploadedPhotos(files: UploadedFile[]) {
+    setPhotos((prev) => {
+      const map = new Map(prev.map((photo) => [photo.url, photo]));
+      files.forEach((file, index) => {
+        if (!map.has(file.url)) {
+          map.set(file.url, {
+            key: `photo-${Date.now()}-${index}`,
+            url: file.url,
+            nom: file.nom,
+          });
+        }
+      });
+      return Array.from(map.values());
+    });
+  }
+
+  function updateDocumentType(index: number, type: string) {
+    setDocuments((prev) => prev.map((doc, i) => (i === index ? { ...doc, type } : doc)));
+  }
+
+  function removeDocument(index: number) {
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function mergeUploadedDocuments(files: UploadedFile[]) {
+    setDocuments((prev) => {
+      const map = new Map(prev.map((doc) => [doc.url, doc]));
+      files.forEach((file, index) => {
+        if (!map.has(file.url)) {
+          map.set(file.url, {
+            key: `document-${Date.now()}-${index}`,
+            url: file.url,
+            nom: file.nom,
+            type: "PLAQUETTE",
+            taille: file.taille,
+          });
+        }
+      });
+      return Array.from(map.values());
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
-    try {
-      const allPhotos = [
-        ...existingPhotos.map((p) => ({ url: p.url, nom: p.alt })),
-        ...newPhotos.map((p) => ({ url: p.url, nom: p.nom })),
-      ];
-      const allDocs = [
-        ...existingDocs.map((d) => ({ url: d.url, nom: d.nom, type: d.type, taille: d.taille })),
-        ...newDocs.map((d, i) => ({ url: d.url, nom: d.nom, type: newDocTypes[i] || "PLAQUETTE", taille: d.taille })),
-      ];
 
+    try {
       const res = await authFetch(`/api/programmes/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, lots, photos: allPhotos, documents: allDocs }),
+        body: JSON.stringify({
+          ...form,
+          lots,
+          photos: photos.map((photo) => ({ url: photo.url, nom: photo.nom })),
+          documents: documents.map((doc) => ({
+            url: doc.url,
+            nom: doc.nom,
+            type: doc.type,
+            taille: doc.taille,
+          })),
+        }),
       });
-      if (res.ok) {
-        setStatus("success");
-        router.push("/admin/programmes");
-      } else {
-        setStatus("error");
+
+      if (!res.ok) {
+        throw new Error("Échec de la mise à jour");
       }
+
+      setStatus("success");
+      router.push("/admin/programmes");
     } catch {
       setStatus("error");
     }
@@ -246,7 +310,7 @@ export default function ModifierProgrammePage() {
             if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce programme ?")) return;
             const res = await authFetch(`/api/programmes/${id}`, { method: "DELETE" });
             if (res.ok) router.push("/admin/programmes");
-            else alert("Erreur lors de la suppression.");
+            else window.alert("Erreur lors de la suppression.");
           }}
           className="px-4 py-2.5 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors flex items-center gap-2 text-sm"
         >
@@ -258,7 +322,6 @@ export default function ModifierProgrammePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Infos principales */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations du programme</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -304,8 +367,7 @@ export default function ModifierProgrammePage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Commission partenaire (%)</label>
-              <input type="number" step="0.1" value={form.commissionPartenaire}
-                onChange={(e) => update("commissionPartenaire", e.target.value)}
+              <input type="number" step="0.1" value={form.commissionPartenaire} onChange={(e) => update("commissionPartenaire", e.target.value)}
                 placeholder="Ex: 3.5"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
@@ -317,7 +379,6 @@ export default function ModifierProgrammePage() {
           </div>
         </div>
 
-        {/* Localisation */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Localisation</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -339,7 +400,6 @@ export default function ModifierProgrammePage() {
           </div>
         </div>
 
-        {/* Prix & Surfaces */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Prix & Surfaces</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -366,7 +426,6 @@ export default function ModifierProgrammePage() {
           </div>
         </div>
 
-        {/* Prestations */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Prestations</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -393,41 +452,41 @@ export default function ModifierProgrammePage() {
           </label>
         </div>
 
-        {/* Photos */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Photos ({existingPhotos.length + newPhotos.length})
-          </h2>
-
-          {/* Photos existantes */}
-          {existingPhotos.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-              {existingPhotos.map((photo, index) => (
-                <div key={photo.id} className="relative group rounded-xl overflow-hidden border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Photos ({photos.length})</h2>
+          <FileUpload
+            type="photos"
+            accept="image/*,.heic,.heif"
+            multiple
+            label="Ajouter des photos"
+            showUploadedList={false}
+            onUpload={mergeUploadedPhotos}
+          />
+          {photos.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {photos.map((photo, index) => (
+                <div key={photo.key} className="relative group rounded-xl overflow-hidden border border-gray-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.url} alt={photo.alt} className="w-full h-28 object-cover" />
+                  <img src={photo.url} alt={photo.nom} className="w-full h-28 object-cover" />
                   {index === 0 && (
                     <span className="absolute top-1.5 left-1.5 text-xs font-semibold bg-accent text-white px-2 py-0.5 rounded-full">
-                      Principale
+                      Image vitrine
                     </span>
                   )}
                   <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button type="button" disabled={index === 0}
-                      onClick={() => movePhoto(index, -1)}
+                    <button type="button" disabled={index === 0} onClick={() => movePhoto(index, -1)}
                       className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
-                    <button type="button"
-                      onClick={() => removeExistingPhoto(index)}
+                    <button type="button" onClick={() => removePhoto(index)}
                       className="p-1 text-red-400 hover:text-red-300">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
-                    <button type="button" disabled={index === existingPhotos.length - 1}
-                      onClick={() => movePhoto(index, 1)}
+                    <button type="button" disabled={index === photos.length - 1} onClick={() => movePhoto(index, 1)}
                       className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -438,69 +497,48 @@ export default function ModifierProgrammePage() {
               ))}
             </div>
           )}
-
-          {/* Nouvelles photos uploadées */}
-          {newPhotos.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-              {newPhotos.map((photo, index) => (
-                <div key={index} className="relative group rounded-xl overflow-hidden border border-green-200">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.url} alt={photo.nom} className="w-full h-28 object-cover" />
-                  <span className="absolute top-1.5 left-1.5 text-xs font-semibold bg-green-500 text-white px-2 py-0.5 rounded-full">
-                    Nouvelle
-                  </span>
-                  <button type="button"
-                    onClick={() => setNewPhotos((prev) => prev.filter((_, i) => i !== index))}
-                    className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-red-400 hover:text-red-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <FileUpload
-            type="photos"
-            accept="image/*,.heic,.heif"
-            multiple
-            label="Ajouter des photos"
-            onUpload={(files) => setNewPhotos(files)}
-          />
           <p className="text-xs text-gray-400 mt-2">
-            Les photos existantes ci-dessus seront conservées. La première photo est l&apos;image principale.
+            La première photo est l&apos;image principale affichée dans la vitrine publique, le portail partenaire et l&apos;admin.
           </p>
         </div>
 
-        {/* Documents */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Documents ({existingDocs.length + newDocs.length})
-          </h2>
-
-          {/* Documents existants */}
-          {existingDocs.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {existingDocs.map((doc, index) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Documents ({documents.length})</h2>
+          <FileUpload
+            type="documents"
+            accept=".pdf,image/*"
+            multiple
+            label="Ajouter des documents"
+            showUploadedList={false}
+            onUpload={mergeUploadedDocuments}
+          />
+          {documents.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {documents.map((doc, index) => (
+                <div key={doc.key} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                       <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{doc.nom}</p>
-                      <p className="text-xs text-gray-500">
-                        {DOC_TYPES_PROGRAMME.find((t) => t.value === doc.type)?.label || doc.type}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">{doc.nom}</p>
+                      <p className="text-xs text-gray-500 truncate">{doc.url}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <select value={doc.type} onChange={(e) => updateDocumentType(index, e.target.value)}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                      {DOC_TYPES_PROGRAMME.map((type) => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
                     <a href={doc.url} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline">Voir</a>
-                    <button type="button" onClick={() => removeExistingDoc(index)}
+                      className="text-xs text-primary hover:underline">
+                      Voir
+                    </a>
+                    <button type="button" onClick={() => removeDocument(index)}
                       className="text-red-400 hover:text-red-600 p-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -511,112 +549,119 @@ export default function ModifierProgrammePage() {
               ))}
             </div>
           )}
-
-          {/* Nouveaux documents uploadés */}
-          {newDocs.length > 0 && (
-            <div className="space-y-2 mb-4">
-              {newDocs.map((doc, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{doc.nom}</p>
-                      <select
-                        value={newDocTypes[index] || "PLAQUETTE"}
-                        onChange={(e) => setNewDocTypes((prev) => ({ ...prev, [index]: e.target.value }))}
-                        className="text-xs border border-gray-300 rounded px-2 py-1 mt-0.5">
-                        {DOC_TYPES_PROGRAMME.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => setNewDocs((prev) => prev.filter((_, i) => i !== index))}
-                    className="text-red-400 hover:text-red-600 p-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <FileUpload
-            type="documents"
-            accept=".pdf,image/*"
-            multiple
-            label="Ajouter des documents"
-            onUpload={(files) => setNewDocs(files)}
-          />
         </div>
 
-        {/* Lots */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Lots ({lots.length})</h2>
             <button type="button" onClick={addLot}
-              className="px-3 py-1.5 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
+              className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors">
               + Ajouter un lot
             </button>
           </div>
-          {lots.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">N°</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Type</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Surface</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Étage</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Prix</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Chambres</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Statut</th>
-                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500">Orient.</th>
-                    <th className="px-2 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {lots.map((lot, i) => (
-                    <tr key={i}>
-                      <td className="px-1 py-1"><input value={lot.numero} onChange={(e) => updateLot(i, "numero", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="A101" /></td>
-                      <td className="px-1 py-1">
-                        <select value={lot.type} onChange={(e) => updateLot(i, "type", e.target.value)} className="px-2 py-1.5 border border-gray-300 rounded text-sm">
-                          {["STUDIO","T1","T2","T3","T4","T5"].map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-1 py-1"><input type="number" value={lot.surface} onChange={(e) => updateLot(i, "surface", e.target.value)} className="w-20 px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="m²" /></td>
-                      <td className="px-1 py-1"><input type="number" value={lot.etage} onChange={(e) => updateLot(i, "etage", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" /></td>
-                      <td className="px-1 py-1"><input type="number" value={lot.prix} onChange={(e) => updateLot(i, "prix", e.target.value)} className="w-24 px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="€" /></td>
-                      <td className="px-1 py-1"><input type="number" value={lot.nbChambres} onChange={(e) => updateLot(i, "nbChambres", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" /></td>
-                      <td className="px-1 py-1">
-                        <select value={lot.statut} onChange={(e) => updateLot(i, "statut", e.target.value)} className="px-2 py-1.5 border border-gray-300 rounded text-sm">
-                          {["DISPONIBLE","OPTION","RESERVE","VENDU"].map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-1 py-1"><input value={lot.orientation} onChange={(e) => updateLot(i, "orientation", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Sud" /></td>
-                      <td className="px-1 py-1">
-                        <button type="button" onClick={() => removeLot(i)} className="text-red-500 hover:text-red-700 p-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400 text-center py-4">Aucun lot. Cliquez sur &quot;Ajouter un lot&quot; pour commencer.</p>
+
+          {lots.length === 0 && (
+            <p className="text-sm text-gray-400 text-center py-4">
+              Cliquez sur &quot;Ajouter un lot&quot; pour commencer à saisir les appartements
+            </p>
           )}
+
+          <div className="space-y-4">
+            {lots.map((lot, i) => (
+              <div key={`${lot.numero}-${i}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-gray-900">Lot #{i + 1}</h3>
+                  <button type="button" onClick={() => removeLot(i)}
+                    className="text-red-400 hover:text-red-600 text-sm">Supprimer</button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">N° Lot *</label>
+                    <input required value={lot.numero} onChange={(e) => updateLot(i, "numero", e.target.value)}
+                      placeholder="A101" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Type *</label>
+                    <select value={lot.type} onChange={(e) => updateLot(i, "type", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                      {["T1", "T2", "T3", "T4", "T5"].map((type) => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Surface (m²) *</label>
+                    <input required type="number" value={lot.surface} onChange={(e) => updateLot(i, "surface", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Étage *</label>
+                    <input required type="number" value={lot.etage} onChange={(e) => updateLot(i, "etage", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Prix (€) *</label>
+                    <input required type="number" value={lot.prix} onChange={(e) => updateLot(i, "prix", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Chambres</label>
+                    <input type="number" value={lot.nbChambres} onChange={(e) => updateLot(i, "nbChambres", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Orientation</label>
+                    <select value={lot.orientation} onChange={(e) => updateLot(i, "orientation", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                      <option value="">-</option>
+                      {["NORD", "SUD", "EST", "OUEST", "NORD-EST", "NORD-OUEST", "SUD-EST", "SUD-OUEST"].map((orientation) => (
+                        <option key={orientation} value={orientation}>{orientation}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Statut</label>
+                    <select value={lot.statut} onChange={(e) => updateLot(i, "statut", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                      <option value="DISPONIBLE">Disponible</option>
+                      <option value="OPTION">Optionné</option>
+                      <option value="RESERVE">Réservé</option>
+                      <option value="VENDU">Vendu</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Terrasse (m²)</label>
+                    <input type="number" value={lot.terrasse} onChange={(e) => updateLot(i, "terrasse", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Balcon (m²)</label>
+                    <input type="number" value={lot.balcon} onChange={(e) => updateLot(i, "balcon", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Jardin (m²)</label>
+                    <input type="number" value={lot.jardin} onChange={(e) => updateLot(i, "jardin", e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div className="flex items-end">
+                    <label className="flex items-center gap-2 p-2">
+                      <input type="checkbox" checked={lot.parking}
+                        onChange={(e) => updateLot(i, "parking", e.target.checked)}
+                        className="w-4 h-4 text-primary rounded" />
+                      <span className="text-sm text-gray-700">Parking</span>
+                    </label>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs text-gray-500 mb-1">URL du plan</label>
+                    <input value={lot.planUrl} onChange={(e) => updateLot(i, "planUrl", e.target.value)}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Submit */}
         <div className="flex gap-4">
           <button type="submit" disabled={status === "saving"}
             className="px-8 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50">
@@ -628,7 +673,9 @@ export default function ModifierProgrammePage() {
         </div>
 
         {status === "error" && (
-          <p className="text-sm text-red-500">Erreur lors de la mise à jour. Vérifiez les champs et réessayez.</p>
+          <p className="text-sm text-red-500">
+            Erreur lors de l&apos;enregistrement. Vérifiez les champs, les documents et les photos.
+          </p>
         )}
       </form>
     </div>

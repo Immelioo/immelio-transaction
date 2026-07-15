@@ -25,6 +25,7 @@ export default function EstimationPage() {
   const [etape, setEtape] = useState(1);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [stepError, setStepError] = useState("");
   const [form, setForm] = useState({
     type: "",
     surface: "",
@@ -50,6 +51,8 @@ export default function EstimationPage() {
   });
 
   function update(key: string, value: string | boolean) {
+    setStepError("");
+    setErrorMsg("");
     setForm((f) => ({ ...f, [key]: value }));
   }
 
@@ -57,11 +60,29 @@ export default function EstimationPage() {
     if (etape === 1) return !!form.type;
     if (etape === 2) return !!form.surface && !!form.nbPieces;
     if (etape === 3) return !!form.ville && !!form.codePostal;
-    if (etape === 4) return !!form.nom && !!form.email && !!form.telephone;
+    if (etape === 4) return !!form.nom && !!form.email;
     return false;
   }
 
+  function goNext() {
+    if (canNext()) {
+      setStepError("");
+      setEtape((prev) => Math.min(prev + 1, 4));
+      return;
+    }
+
+    if (etape === 1) setStepError("Sélectionnez un type de bien pour continuer.");
+    if (etape === 2) setStepError("Renseignez au minimum la surface et le nombre de pièces.");
+    if (etape === 3) setStepError("Renseignez la ville et le code postal du bien.");
+    if (etape === 4) setStepError("Renseignez au minimum votre nom et votre email.");
+  }
+
   async function handleSubmit() {
+    if (!canNext()) {
+      goNext();
+      return;
+    }
+
     setStatus("loading");
     setErrorMsg("");
     try {
@@ -80,7 +101,8 @@ export default function EstimationPage() {
         setStatus("success");
       } else {
         const data = await res.json().catch(() => null);
-        setErrorMsg(data?.error || `Erreur ${res.status} — veuillez réessayer.`);
+        const details = data?.details ? Object.values(data.details).flat().filter(Boolean).join(" ") : "";
+        setErrorMsg(details || data?.error || `Erreur ${res.status} — veuillez réessayer.`);
         setStatus("error");
       }
     } catch {
@@ -173,7 +195,10 @@ export default function EstimationPage() {
                   <button
                     key={t.value}
                     type="button"
-                    onClick={() => update("type", t.value)}
+                    onClick={() => {
+                      update("type", t.value);
+                      setEtape(2);
+                    }}
                     className={`p-4 rounded-xl border-2 text-center transition-all ${
                       form.type === t.value
                         ? "border-primary bg-slate-100 ring-2 ring-primary ring-offset-1"
@@ -187,6 +212,9 @@ export default function EstimationPage() {
                   </button>
                 ))}
               </div>
+              {stepError && (
+                <p className="mt-4 text-sm text-red-600">{stepError}</p>
+              )}
             </div>
           )}
 
@@ -318,8 +346,8 @@ export default function EstimationPage() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="votre@email.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
-                    <input type="tel" required value={form.telephone} onChange={(e) => update("telephone", e.target.value)}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <input type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="06 12 34 56 78" />
                   </div>
                 </div>
@@ -333,10 +361,16 @@ export default function EstimationPage() {
             </div>
           )}
 
+          {stepError && etape > 1 && (
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {stepError}
+            </div>
+          )}
+
           {/* Navigation */}
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
             {etape > 1 ? (
-              <button onClick={() => setEtape(etape - 1)}
+              <button type="button" onClick={() => { setStepError(""); setEtape(etape - 1); }}
                 className="px-6 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                 Précédent
               </button>
@@ -344,8 +378,8 @@ export default function EstimationPage() {
               <div />
             )}
             {etape < 4 ? (
-              <button onClick={() => canNext() && setEtape(etape + 1)} disabled={!canNext()}
-                className="px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="button" onClick={goNext}
+                className="px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors">
                 Suivant
               </button>
             ) : (
@@ -353,7 +387,7 @@ export default function EstimationPage() {
                 {status === "error" && errorMsg && (
                   <p className="text-xs text-red-600 text-right">{errorMsg}</p>
                 )}
-                <button onClick={handleSubmit} disabled={!canNext() || status === "loading"}
+                <button type="button" onClick={handleSubmit} disabled={status === "loading"}
                   className="px-8 py-2.5 bg-accent text-white rounded-lg font-semibold hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   {status === "loading" ? "Envoi..." : "Obtenir mon estimation gratuite"}
                 </button>

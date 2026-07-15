@@ -22,6 +22,10 @@ function getLocalFilePath(sourceUrl: string) {
   return path.join(process.cwd(), "public", normalized);
 }
 
+function getFallbackDocumentPath() {
+  return path.join(process.cwd(), "public", "demo-documents", "placeholder-document.pdf");
+}
+
 async function downloadLocalFile(sourceUrl: string, filename: string) {
   try {
     const filePath = getLocalFilePath(sourceUrl);
@@ -42,6 +46,29 @@ async function downloadLocalFile(sourceUrl: string, filename: string) {
       filename,
       error: String(error),
     });
+
+    if (sourceUrl.startsWith("/uploads/documents/")) {
+      try {
+        const fallbackPath = getFallbackDocumentPath();
+        const fileBuffer = await fs.readFile(fallbackPath);
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": buildDisposition(filename),
+            "Cache-Control": "private, no-store",
+            "X-Immelio-Fallback": "demo-document",
+          },
+        });
+      } catch (fallbackError) {
+        logger.error("Fallback document introuvable", {
+          sourceUrl,
+          filename,
+          error: String(fallbackError),
+        });
+      }
+    }
+
     return null;
   }
 }

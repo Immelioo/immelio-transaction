@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
+import { useState } from "react";
 import { formatPrix } from "@/lib/utils";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 
@@ -28,22 +30,37 @@ const dpeColors: Record<string, string> = {
   G: "bg-red-500",
 };
 
+function PhotoPlaceholder() {
+  return (
+    <div className="w-full h-full flex items-center justify-center text-gray-400">
+      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    </div>
+  );
+}
+
 export default function BienCard({
   id, titre, type, transaction, prix, surface, nbPieces, ville, codePostal, photo, dpe, enVedette
 }: BienCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Link href={`/biens/${id}`} className="group">
       <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 group-hover:-translate-y-1">
         {/* Image */}
         <div className="relative h-52 bg-gray-200 overflow-hidden">
-          {photo ? (
-            <Image src={photo} alt={titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
+          {photo && !imgError ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photo}
+              alt={titre}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImgError(true)}
+              loading="lazy"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-            </div>
+            <PhotoPlaceholder />
           )}
 
           {/* Badges */}

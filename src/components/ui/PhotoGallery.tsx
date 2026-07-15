@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 
 interface Photo {
   id: string;
@@ -20,7 +19,6 @@ export default function PhotoGallery({
   photos,
   titre,
   aspectMain = "h-96",
-  sizesMain = "(max-width: 1024px) 100vw, 66vw",
 }: Props) {
   const [current, setCurrent] = useState(0);
   const [lightbox, setLightbox] = useState(false);
@@ -39,7 +37,6 @@ export default function PhotoGallery({
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, prev, next]);
 
-  // Empêche scroll body quand lightbox ouverte
   useEffect(() => {
     document.body.style.overflow = lightbox ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -59,16 +56,14 @@ export default function PhotoGallery({
     <>
       {/* Photo principale */}
       <div className={`relative bg-gray-200 rounded-xl overflow-hidden ${aspectMain} group`}>
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={photos[current].url}
           alt={photos[current].alt || titre}
-          fill
-          className="object-cover transition-opacity duration-300"
-          sizes={sizesMain}
-          priority={current === 0}
+          className="w-full h-full object-cover transition-opacity duration-300"
+          loading={current === 0 ? "eager" : "lazy"}
         />
 
-        {/* Overlay au hover pour indiquer le clic */}
         <button
           onClick={() => setLightbox(true)}
           className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center"
@@ -82,7 +77,6 @@ export default function PhotoGallery({
           </span>
         </button>
 
-        {/* Flèches navigation */}
         {photos.length > 1 && (
           <>
             <button
@@ -103,8 +97,6 @@ export default function PhotoGallery({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-
-            {/* Compteur */}
             <div className="absolute bottom-3 right-3 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
               {current + 1} / {photos.length}
             </div>
@@ -120,13 +112,12 @@ export default function PhotoGallery({
               key={photo.id}
               onClick={() => setCurrent(i)}
               className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-                i === current
-                  ? "ring-2 ring-primary ring-offset-1 opacity-100"
-                  : "opacity-60 hover:opacity-90"
+                i === current ? "ring-2 ring-primary ring-offset-1 opacity-100" : "opacity-60 hover:opacity-90"
               }`}
               aria-label={`Voir la photo ${i + 1}`}
             >
-              <Image src={photo.url} alt={photo.alt || `${titre} — photo ${i + 1}`} fill className="object-cover" sizes="80px" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={photo.url} alt={photo.alt || `${titre} — photo ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
             </button>
           ))}
         </div>
@@ -138,7 +129,6 @@ export default function PhotoGallery({
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           onClick={() => setLightbox(false)}
         >
-          {/* Bouton fermer */}
           <button
             onClick={() => setLightbox(false)}
             className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors z-10"
@@ -149,27 +139,22 @@ export default function PhotoGallery({
             </svg>
           </button>
 
-          {/* Compteur */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium">
             {current + 1} / {photos.length}
           </div>
 
-          {/* Image principale */}
           <div
-            className="relative w-full max-w-5xl max-h-[85vh] mx-4 aspect-[4/3]"
+            className="relative w-full max-w-5xl max-h-[85vh] mx-4 flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={photos[current].url}
               alt={photos[current].alt || titre}
-              fill
-              className="object-contain"
-              sizes="100vw"
-              priority
+              className="max-w-full max-h-[85vh] object-contain"
             />
           </div>
 
-          {/* Flèches lightbox */}
           {photos.length > 1 && (
             <>
               <button
@@ -193,7 +178,6 @@ export default function PhotoGallery({
             </>
           )}
 
-          {/* Miniatures lightbox */}
           {photos.length > 1 && (
             <div
               className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 max-w-xl overflow-x-auto px-4"
@@ -207,7 +191,8 @@ export default function PhotoGallery({
                     i === current ? "ring-2 ring-white opacity-100" : "opacity-40 hover:opacity-70"
                   }`}
                 >
-                  <Image src={photo.url} alt={`Miniature ${i + 1}`} fill className="object-cover" sizes="56px" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={`Miniature ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
             </div>

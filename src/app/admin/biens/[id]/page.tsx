@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+
 import { prisma } from "@/lib/prisma";
 import { formatPrix, formatDate } from "@/lib/utils";
 import DocumentManager from "@/components/admin/DocumentManager";
@@ -54,12 +54,14 @@ export default async function AdminBienDetailPage({ params }: Props) {
           {/* Photo */}
           {bien.photos.length > 0 && (
             <div className="bg-white rounded-xl overflow-hidden border border-gray-100">
-              <div className="relative h-64"><Image src={bien.photos[0].url} alt={bien.titre} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 66vw" /></div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bien.photos[0].url} alt={bien.titre} className="w-full h-64 object-cover" />
               {bien.photos.length > 1 && (
                 <div className="flex gap-2 p-3 overflow-x-auto">
                   {bien.photos.map((p) => (
-                    <div key={p.id} className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                      <Image src={p.url} alt="" fill className="object-cover" sizes="80px" />
+                    <div key={p.id} className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   ))}
                 </div>

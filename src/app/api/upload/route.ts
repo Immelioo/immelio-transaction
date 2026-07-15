@@ -34,8 +34,17 @@ export async function POST(req: NextRequest) {
 
     const isPhoto = type === "photos";
 
-    // 3. Vérification du type MIME réel (pas l'extension)
-    const mimeType = file.type;
+    // 3. Vérification du type MIME — fallback par extension (Chrome ne reconnaît pas HEIC)
+    const EXT_MIME: Record<string, string> = {
+      jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+      webp: "image/webp", heic: "image/heic", heif: "image/heif",
+      pdf: "application/pdf",
+    };
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const mimeType = file.type && file.type !== "application/octet-stream"
+      ? file.type
+      : (EXT_MIME[ext] ?? file.type);
+
     const allowedTypes = isPhoto ? ALLOWED_PHOTO_TYPES : ALLOWED_DOC_TYPES;
 
     if (!allowedTypes.has(mimeType)) {

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { formatPrix } from "@/lib/utils";
 import Link from "next/link";
-import Image from "next/image";
+
 
 export default async function AdminBiensPage() {
   const biens = await prisma.bien.findMany({
@@ -41,9 +41,10 @@ export default async function AdminBiensPage() {
               <tr key={bien.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       {bien.photos[0] ? (
-                        <Image src={bien.photos[0].url} alt="" fill className="object-cover" sizes="40px" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={bien.photos[0].url} alt="" className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">IMG</div>
                       )}

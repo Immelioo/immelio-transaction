@@ -52,6 +52,12 @@ export default function Header() {
               Estimer gratuitement
             </Link>
             <Link
+              href="/devenir-partenaire"
+              className="px-4 py-2 border border-primary text-primary rounded-lg font-medium hover:bg-primary/5 transition-all"
+            >
+              Devenir Partenaire
+            </Link>
+            <Link
               href="/pro/login"
               className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-all"
             >
@@ -98,6 +104,9 @@ export default function Header() {
             <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
               <Link href="/estimation" className="px-4 py-2 text-accent border border-accent rounded-lg font-medium text-center" onClick={() => setMenuOpen(false)}>
                 Estimer gratuitement
+              </Link>
+              <Link href="/devenir-partenaire" className="px-4 py-2 border border-primary text-primary rounded-lg font-medium text-center" onClick={() => setMenuOpen(false)}>
+                Devenir Partenaire
               </Link>
               <Link href="/pro/login" className="px-4 py-2 bg-primary text-white rounded-lg font-medium text-center" onClick={() => setMenuOpen(false)}>
                 Espace Pro

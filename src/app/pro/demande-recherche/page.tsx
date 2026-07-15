@@ -9,23 +9,50 @@ export default function ProDemandeRecherchePage() {
     type: "APPARTEMENT", transaction: "VENTE",
     budgetMin: "", budgetMax: "", surfaceMin: "", surfaceMax: "",
     nbPiecesMin: "", ville: "", description: "",
-    clientNom: "", clientEmail: "", clientTelephone: "",
+    clientPrenom: "", clientNom: "", clientEmail: "", clientTelephone: "",
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
+    setErrorMsg("");
     try {
+      const payload = {
+        type: form.type,
+        transaction: form.transaction,
+        budgetMin: form.budgetMin !== "" ? Number(form.budgetMin) : undefined,
+        budgetMax: form.budgetMax !== "" ? Number(form.budgetMax) : undefined,
+        surfaceMin: form.surfaceMin !== "" ? Number(form.surfaceMin) : undefined,
+        surfaceMax: form.surfaceMax !== "" ? Number(form.surfaceMax) : undefined,
+        nbPiecesMin: form.nbPiecesMin !== "" ? Number(form.nbPiecesMin) : undefined,
+        ville: form.ville,
+        description: form.description,
+        nom: form.clientNom,
+        prenom: form.clientPrenom,
+        email: form.clientEmail,
+        telephone: form.clientTelephone || undefined,
+      };
+
       const res = await fetch("/api/demandes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ ...form, source: "PARTENAIRE" }),
+        body: JSON.stringify(payload),
       });
-      if (res.ok) setStatus("success");
-      else setStatus("error");
+      if (res.ok) {
+        setStatus("success");
+      } else {
+        const data = await res.json().catch(() => null);
+        const details = data?.details
+          ? Object.values(data.details as Record<string, string[]>).flat().filter(Boolean).join(" ")
+          : "";
+        setErrorMsg(details || data?.error || "Une erreur est survenue. Veuillez réessayer.");
+        setStatus("error");
+      }
     } catch {
+      setErrorMsg("Erreur réseau — vérifiez votre connexion et réessayez.");
       setStatus("error");
     }
   }
@@ -58,7 +85,7 @@ export default function ProDemandeRecherchePage() {
                 <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-sm font-medium">Une erreur est survenue. Veuillez réessayer.</span>
+                <span className="text-sm font-medium">{errorMsg || "Une erreur est survenue. Veuillez réessayer."}</span>
               </div>
             )}
 
@@ -66,6 +93,11 @@ export default function ProDemandeRecherchePage() {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations du client</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prénom du client</label>
+                  <input value={form.clientPrenom} onChange={(e) => setForm({ ...form, clientPrenom: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors" />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nom du client</label>
                   <input value={form.clientNom} onChange={(e) => setForm({ ...form, clientNom: e.target.value })}
@@ -137,10 +169,10 @@ export default function ProDemandeRecherchePage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none" />
             </div>
 
-            <button type="submit" disabled={status === "loading"}
-              className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50">
-              {status === "loading" ? "Envoi en cours…" : "Envoyer la demande"}
-            </button>
+              <button type="submit" disabled={status === "loading"}
+                className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50">
+                {status === "loading" ? "Envoi en cours…" : "Envoyer la demande"}
+              </button>
           </form>
         )}
       </main>

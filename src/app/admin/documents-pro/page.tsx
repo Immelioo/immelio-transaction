@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import DocumentStatutActions from "./DocumentStatutActions";
 
+export const dynamic = "force-dynamic";
+
 const TYPE_LABELS: Record<string, string> = {
   MANDAT: "Mandat",
   COMPROMIS: "Compromis",

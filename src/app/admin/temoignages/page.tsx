@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import TemoignagesManager from "./TemoignagesManager";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminTemoignagesPage() {
   const temoignages = await prisma.temoignage.findMany({ orderBy: { ordre: "asc" } });
 

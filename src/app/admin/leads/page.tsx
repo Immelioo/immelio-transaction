@@ -4,6 +4,8 @@ import { formatDate } from "@/lib/utils";
 import LeadActions from "@/components/admin/LeadActions";
 import NouveauLeadButton from "./NouveauLeadButton";
 
+export const dynamic = "force-dynamic";
+
 const PAGE_SIZE = 50;
 
 const statutColors: Record<string, string> = {

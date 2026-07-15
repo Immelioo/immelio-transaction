@@ -4,7 +4,14 @@ import { formatDate } from "@/lib/utils";
 import DeleteButton from "@/components/admin/DeleteButton";
 import ReinviteButton from "@/components/admin/ReinviteButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPartenairesPage() {
+  const demandesPartenariat = await prisma.lead.findMany({
+    where: { notes: { startsWith: "Demande de partenariat" }, statut: "NOUVEAU" },
+    orderBy: { createdAt: "desc" },
+  });
+
   const partenaires = await prisma.user.findMany({
     where: { role: "PARTENAIRE" },
     orderBy: { createdAt: "desc" },
@@ -31,6 +38,51 @@ export default async function AdminPartenairesPage() {
           + Nouveau partenaire
         </Link>
       </div>
+
+      {/* Demandes de partenariat entrantes */}
+      {demandesPartenariat.length > 0 && (
+        <div className="bg-white rounded-xl border border-amber-200 mb-8">
+          <div className="p-5 border-b border-amber-100 flex items-center gap-3 bg-amber-50 rounded-t-xl">
+            <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">Demandes de partenariat</h2>
+              <p className="text-xs text-amber-700">{demandesPartenariat.length} demande{demandesPartenariat.length > 1 ? "s" : ""} en attente depuis /devenir-partenaire</p>
+            </div>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {demandesPartenariat.map((lead) => {
+              const params = new URLSearchParams({
+                prenom: lead.prenom || "",
+                nom: lead.nom || "",
+                email: lead.email,
+                ...(lead.telephone && { telephone: lead.telephone }),
+                ...(lead.notes && { entreprise: lead.notes.replace(/^Demande de partenariat — /, "").split("\n")[0] }),
+              });
+              return (
+                <div key={lead.id} className="p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{lead.prenom} {lead.nom}</p>
+                    <p className="text-xs text-gray-500">{lead.email}{lead.telephone ? ` · ${lead.telephone}` : ""}</p>
+                    {lead.notes && (
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{lead.notes}</p>
+                    )}
+                  </div>
+                  <Link
+                    href={`/admin/partenaires/nouveau?${params.toString()}`}
+                    className="shrink-0 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors"
+                  >
+                    Créer le compte
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">

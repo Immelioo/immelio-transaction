@@ -327,68 +327,63 @@ export default function ModifierBienPage() {
               <p className="text-sm text-gray-500 mb-3">Photos actuelles ({form.photoUrls.length})</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {form.photoUrls.map((photo, i) => (
-                  <div key={photo.url} className="relative group">
-                    {/* Badge principale */}
-                    {i === 0 && (
-                      <div className="absolute top-1 left-1 z-10 bg-accent text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                        PRINCIPALE
-                      </div>
-                    )}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo.url}
-                      alt=""
-                      className={`w-full aspect-square object-cover rounded-lg border-2 transition-all ${i === 0 ? "border-accent" : "border-transparent"}`}
-                    />
-                    {/* Actions au hover */}
-                    <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
-                      {i > 0 && (
-                        <button type="button"
-                          onClick={() => setForm((prev) => {
-                            const arr = [...prev.photoUrls];
-                            const [item] = arr.splice(i, 1);
-                            arr.unshift(item);
-                            return { ...prev, photoUrls: arr };
-                          })}
-                          className="text-[10px] font-bold text-white bg-accent px-2 py-0.5 rounded w-full text-center hover:bg-accent/80">
-                          ★ Principale
-                        </button>
+                  <div key={photo.url} className="flex flex-col gap-1">
+                    <div className="relative">
+                      {i === 0 && (
+                        <div className="absolute top-1 left-1 z-10 bg-accent text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          PRINCIPALE
+                        </div>
                       )}
-                      <div className="flex gap-1">
-                        {i > 0 && (
-                          <button type="button"
-                            onClick={() => setForm((prev) => {
-                              const arr = [...prev.photoUrls];
-                              [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
-                              return { ...prev, photoUrls: arr };
-                            })}
-                            className="text-white bg-black/50 hover:bg-black/70 rounded px-1.5 py-0.5 text-xs">
-                            ←
-                          </button>
-                        )}
-                        {i < form.photoUrls.length - 1 && (
-                          <button type="button"
-                            onClick={() => setForm((prev) => {
-                              const arr = [...prev.photoUrls];
-                              [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
-                              return { ...prev, photoUrls: arr };
-                            })}
-                            className="text-white bg-black/50 hover:bg-black/70 rounded px-1.5 py-0.5 text-xs">
-                            →
-                          </button>
-                        )}
-                        <button type="button"
-                          onClick={() => {
-                            uploadedPhotoUrlsRef.current = uploadedPhotoUrlsRef.current.filter(
-                              (uploadedPhoto) => uploadedPhoto.url !== photo.url,
-                            );
-                            setForm((prev) => ({ ...prev, photoUrls: prev.photoUrls.filter((_, idx) => idx !== i) }));
-                          }}
-                          className="text-white bg-red-500/80 hover:bg-red-600 rounded px-1.5 py-0.5 text-xs">
-                          ✕
-                        </button>
-                      </div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.url}
+                        alt=""
+                        className={`w-full aspect-square object-cover rounded-lg border-2 transition-all ${i === 0 ? "border-accent" : "border-gray-200"}`}
+                      />
                     </div>
+                    {/* Contrôles toujours visibles */}
+                    <div className="flex gap-1">
+                      <button type="button" title="Déplacer à gauche" disabled={i === 0}
+                        onClick={() => setForm((prev) => {
+                          const arr = [...prev.photoUrls];
+                          [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+                          return { ...prev, photoUrls: arr };
+                        })}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed rounded text-xs py-1 text-center transition-colors">
+                        ←
+                      </button>
+                      <button type="button" title="Déplacer à droite" disabled={i === form.photoUrls.length - 1}
+                        onClick={() => setForm((prev) => {
+                          const arr = [...prev.photoUrls];
+                          [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                          return { ...prev, photoUrls: arr };
+                        })}
+                        className="flex-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed rounded text-xs py-1 text-center transition-colors">
+                        →
+                      </button>
+                      <button type="button" title="Supprimer"
+                        onClick={() => {
+                          uploadedPhotoUrlsRef.current = uploadedPhotoUrlsRef.current.filter(
+                            (uploadedPhoto) => uploadedPhoto.url !== photo.url,
+                          );
+                          setForm((prev) => ({ ...prev, photoUrls: prev.photoUrls.filter((_, idx) => idx !== i) }));
+                        }}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 rounded text-xs py-1 px-1.5 transition-colors">
+                        ✕
+                      </button>
+                    </div>
+                    {i > 0 && (
+                      <button type="button"
+                        onClick={() => setForm((prev) => {
+                          const arr = [...prev.photoUrls];
+                          const [item] = arr.splice(i, 1);
+                          arr.unshift(item);
+                          return { ...prev, photoUrls: arr };
+                        })}
+                        className="text-[10px] font-bold text-accent border border-accent/30 bg-accent/5 hover:bg-accent/10 rounded py-0.5 text-center transition-colors">
+                        ★ Principale
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

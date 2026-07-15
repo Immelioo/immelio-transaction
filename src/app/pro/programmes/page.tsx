@@ -3,6 +3,8 @@ import { formatPrix } from "@/lib/utils";
 import LotGrid from "./LotGrid";
 import ProSidebar from "@/components/pro/ProSidebar";
 
+export const dynamic = "force-dynamic";
+
 const docTypeLabels: Record<string, string> = {
   PLAQUETTE: "Plaquette",
   GRILLE_PRIX: "Grille de prix",

@@ -38,6 +38,15 @@ export const contactSchema = z.object({
   message: sanitizedString(2000),
 });
 
+export const devenirPartenaireSchema = z.object({
+  prenom: sanitizedString(100),
+  nom: sanitizedString(100),
+  email: z.string().trim().email("Email invalide").max(255),
+  telephone: z.string().trim().regex(phoneRegex, "Téléphone invalide").optional().or(z.literal("")),
+  entreprise: sanitizedString(200),
+  message: z.string().trim().max(2000).optional(),
+});
+
 export const visiteSchema = z.object({
   bienId: z.string().cuid("ID bien invalide"),
   nom: sanitizedString(100),

@@ -15,6 +15,7 @@ function isBuildTime() {
 
 function validateEnv() {
   const missing: string[] = [];
+  const warnings: string[] = [];
 
   for (const key of required) {
     if (!process.env[key]) {
@@ -31,13 +32,17 @@ function validateEnv() {
   }
 
   if (process.env.NODE_ENV === "production" && !hasResend && !hasCompleteSmtp) {
-    missing.push("RESEND_API_KEY ou une configuration SMTP complète (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)");
+    warnings.push("Aucun provider email configuré — les emails seront ignorés mais les formulaires doivent continuer à fonctionner.");
   }
 
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables:\n${missing.map((k) => `  - ${k}`).join("\n")}\n\nCopy .env.example to .env and fill in the values.`
     );
+  }
+
+  if (warnings.length > 0) {
+    console.warn(warnings.join("\n"));
   }
 }
 

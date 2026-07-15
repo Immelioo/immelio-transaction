@@ -1,22 +1,33 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authFetch } from "@/lib/authFetch";
 
 export default function NouveauPartenairePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const prefillPrenom = searchParams.get("prenom") || "";
+  const prefillNom = searchParams.get("nom") || "";
+  const prefillEmail = searchParams.get("email") || "";
+  const prefillTelephone = searchParams.get("telephone") || "";
+  const prefillEntreprise = searchParams.get("entreprise") || "";
   const [form, setForm] = useState({
-    nom: "", prenom: "", email: "", telephone: "",
-    entreprise: "",
+    nom: prefillNom,
+    prenom: prefillPrenom,
+    email: prefillEmail,
+    telephone: prefillTelephone,
+    entreprise: prefillEntreprise,
     documents: [] as { nom: string; type: string; url: string; taille: number }[],
   });
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [docType, setDocType] = useState("MANDAT");
   const docFileRef = useRef<HTMLInputElement>(null);
+  const dossierId = searchParams.get("dossierId");
+  const contactId = searchParams.get("contactId");
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -66,6 +77,13 @@ export default function NouveauPartenairePage() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
+        if (dossierId) {
+          await authFetch(`/api/dossiers/${dossierId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ statut: "TRAITEE" }),
+          });
+        }
         router.push("/admin/partenaires");
       } else {
         const data = await res.json().catch(() => null);
@@ -99,6 +117,15 @@ export default function NouveauPartenairePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {(dossierId || contactId) && (
+          <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-gray-700">
+            <p className="font-semibold text-gray-900">Création rapide depuis une demande partenaire</p>
+            <p className="mt-1">
+              Les informations de contact ont été préremplies. Ajoutez les pièces utiles puis créez l&apos;accès pour envoyer l&apos;invitation immédiatement.
+            </p>
+          </div>
+        )}
+
         {/* Infos partenaire */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations du partenaire</h2>

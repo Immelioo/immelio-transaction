@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { formatPrix } from "@/lib/utils";
 import ProSidebar from "@/components/pro/ProSidebar";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProBiensPage() {
   const biens = await prisma.bien.findMany({
     where: { statut: { not: "VENDU" } },

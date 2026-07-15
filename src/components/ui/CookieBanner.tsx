@@ -1,16 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie-consent");
     // setTimeout defer pour éviter setState synchrone dans un effet
     if (!consent) setTimeout(() => setVisible(true), 0);
   }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      document.body.style.paddingBottom = "";
+      return;
+    }
+
+    const updateOffset = () => {
+      const height = bannerRef.current?.offsetHeight ?? 0;
+      document.body.style.paddingBottom = `${height + 16}px`;
+    };
+
+    updateOffset();
+    window.addEventListener("resize", updateOffset);
+
+    return () => {
+      window.removeEventListener("resize", updateOffset);
+      document.body.style.paddingBottom = "";
+    };
+  }, [visible]);
 
   function accept() {
     localStorage.setItem("cookie-consent", "accepted");
@@ -25,7 +46,7 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-xl p-4 sm:p-6">
+    <div ref={bannerRef} className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-xl p-4 sm:p-6">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex items-start gap-3 flex-1">
           <span className="text-2xl">🍪</span>

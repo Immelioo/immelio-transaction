@@ -37,7 +37,7 @@ const services = [
 export default async function Home() {
   const siteSettings = await getSiteSettings();
   const biensVedette = await prisma.bien.findMany({
-    where: { enVedette: true, disponible: true },
+    where: { enVedette: true, statut: { not: "VENDU" } },
     include: { photos: { take: 1, orderBy: { ordre: "asc" } } },
     take: 6,
   });
@@ -652,13 +652,19 @@ export default async function Home() {
             <p className="text-gray-600 text-lg mb-8">
               Rejoignez notre réseau de partenaires et accédez à des outils exclusifs pour développer votre activité.
             </p>
-            <Link href="/pro/login"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl">
-              Accéder à l&apos;Espace Pro
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/devenir-partenaire"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl">
+                Devenir Partenaire
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+              <Link href="/pro/login"
+                className="inline-flex items-center gap-2 px-8 py-4 border-2 border-primary text-primary rounded-xl font-semibold text-lg hover:bg-primary/5 transition-all">
+                Déjà partenaire ? Se connecter
+              </Link>
+            </div>
           </AnimateOnScroll>
         </div>
       </section>

@@ -484,6 +484,55 @@ export function emailInvitationPartenaire(params: {
 }
 
 /**
+ * C1 — Notification admin : demande publique de partenariat (formulaire /devenir-partenaire)
+ */
+export function emailDemandePartenariat(params: {
+  prenom: string;
+  nom: string;
+  email: string;
+  telephone?: string;
+  entreprise: string;
+  message?: string;
+  prefillUrl: string;
+}) {
+  return {
+    to: ADMIN_EMAIL,
+    subject: `🤝 Nouvelle demande de partenariat — ${params.prenom} ${params.nom} (${params.entreprise})`,
+    html: `
+      ${HEADER}
+      <div style="padding: 32px; font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1e3a5f;">Nouvelle demande de partenariat</h2>
+        <p style="color: #555;">Un professionnel souhaite devenir partenaire Immelio Transaction.</p>
+
+        <div style="background: #fff3cd; border-radius: 12px; padding: 20px; margin: 24px 0; border-left: 4px solid #d4a853;">
+          <h3 style="margin: 0 0 12px 0; color: #1e3a5f;">Coordonnées</h3>
+          <p style="margin: 6px 0;"><strong>Nom :</strong> ${params.prenom} ${params.nom}</p>
+          <p style="margin: 6px 0;"><strong>Email :</strong> <a href="mailto:${params.email}" style="color: #1e3a5f;">${params.email}</a></p>
+          ${params.telephone ? `<p style="margin: 6px 0;"><strong>Tél :</strong> <a href="tel:${params.telephone}" style="color: #1e3a5f;">${params.telephone}</a></p>` : ""}
+          <p style="margin: 6px 0;"><strong>Entreprise :</strong> ${params.entreprise}</p>
+        </div>
+
+        ${params.message ? `
+        <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 24px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #1e3a5f;">Message</h3>
+          <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${params.message}</p>
+        </div>
+        ` : ""}
+
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${params.prefillUrl}"
+             style="display: inline-block; background: #1e3a5f; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+            Créer le compte partenaire →
+          </a>
+          <p style="font-size: 12px; color: #888; margin-top: 8px;">Les informations sont préremplies dans le formulaire.</p>
+        </div>
+      </div>
+      ${FOOTER}
+    `,
+  };
+}
+
+/**
  * @deprecated Utiliser emailInvitationPartenaire à la place — ne jamais envoyer de mot de passe en clair
  */
 export function emailBienvenuePartenaire(params: {

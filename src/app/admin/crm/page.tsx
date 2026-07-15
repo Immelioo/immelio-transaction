@@ -6,6 +6,8 @@ import DemandeActions from "@/components/admin/DemandeActions";
 import VisiteActions from "@/components/admin/VisiteActions";
 import OptionStatusActions from "@/components/admin/OptionStatusActions";
 
+export const dynamic = "force-dynamic";
+
 const statusColor: Record<string, string> = {
   NOUVEAU: "bg-blue-100 text-blue-700",
   CONTACTE: "bg-yellow-100 text-yellow-700",

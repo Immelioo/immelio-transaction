@@ -4,6 +4,8 @@ import { verifyToken } from "@/lib/jwt";
 import { formatDate, formatPrix } from "@/lib/utils";
 import ProSidebar from "@/components/pro/ProSidebar";
 
+export const dynamic = "force-dynamic";
+
 async function getProUserId(): Promise<string | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth-token")?.value;

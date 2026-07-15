@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { formatPrix, formatDate } from "@/lib/utils";
 import DeleteButton from "@/components/admin/DeleteButton";
 
+export const dynamic = "force-dynamic";
+
 const statutLabels: Record<string, { label: string; color: string }> = {
   EN_COMMERCIALISATION: { label: "En commercialisation", color: "bg-green-100 text-green-700" },
   BIENTOT: { label: "Bientôt", color: "bg-blue-100 text-blue-700" },

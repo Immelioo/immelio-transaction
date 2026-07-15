@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import PartenaireContactButton from "./PartenaireContactButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
   const [totalBiens, totalDisponibles, totalDemandes, totalVisites, totalPartenaires, totalLeads, visitesPending, demandesNouvelles, optionsEnCours] = await Promise.all([
     prisma.bien.count(),

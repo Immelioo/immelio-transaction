@@ -28,15 +28,18 @@ interface Contact {
   dossiers: Dossier[];
 }
 
-const DOSSIER_TYPES = ["VENTE", "ACHAT", "LOCATION", "AUTRE"];
+const DOSSIER_TYPES = ["VENTE", "ACHAT", "LOCATION", "PARTENARIAT", "AUTRE"];
 const DOSSIER_STATUTS = ["EN_COURS", "SIGNE", "ABANDONNE"];
 const STATUT_LABELS: Record<string, { label: string; cls: string }> = {
   EN_COURS:  { label: "En cours",  cls: "bg-blue-100 text-blue-700" },
   SIGNE:     { label: "Signé",     cls: "bg-green-100 text-green-700" },
   ABANDONNE: { label: "Abandonné", cls: "bg-gray-100 text-gray-500" },
+  NOUVELLE:  { label: "Nouvelle",  cls: "bg-blue-100 text-blue-700" },
+  TRAITEE:   { label: "Traitée",   cls: "bg-green-100 text-green-700" },
+  ARCHIVEE:  { label: "Archivée",  cls: "bg-gray-100 text-gray-500" },
 };
 const TYPE_LABELS: Record<string, string> = {
-  VENTE: "Vente", ACHAT: "Achat", LOCATION: "Location", AUTRE: "Autre",
+  VENTE: "Vente", ACHAT: "Achat", LOCATION: "Location", PARTENARIAT: "Partenariat", AUTRE: "Autre",
 };
 
 const EMPTY_CONTACT = { nom: "", prenom: "", telephone: "", email: "", entreprise: "", notes: "" };

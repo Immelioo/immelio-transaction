@@ -6,6 +6,8 @@ import { formatPrix, formatDate } from "@/lib/utils";
 import DocumentManager from "@/components/admin/DocumentManager";
 import DeleteButton from "@/components/admin/DeleteButton";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ id: string }>;
 }

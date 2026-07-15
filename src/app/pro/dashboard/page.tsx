@@ -5,6 +5,8 @@ import { verifyToken } from "@/lib/jwt";
 import { formatPrix } from "@/lib/utils";
 import ProSidebar from "@/components/pro/ProSidebar";
 
+export const dynamic = "force-dynamic";
+
 const optionStatutColor: Record<string, string> = {
   EN_COURS: "bg-orange-100 text-orange-700",
   ACCEPTEE: "bg-green-100 text-green-700",

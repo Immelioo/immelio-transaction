@@ -4,6 +4,8 @@ import Link from "next/link";
 
 const PAGE_SIZE = 50;
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams?: Promise<{ page?: string }>;
 }

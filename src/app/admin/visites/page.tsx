@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import VisiteActions from "@/components/admin/VisiteActions";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminVisitesPage() {
   const visites = await prisma.demandeVisite.findMany({
     orderBy: { createdAt: "desc" },

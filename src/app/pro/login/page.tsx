@@ -15,6 +15,7 @@ export default function ProLoginPage() {
 
   // Partenariat state
   const [partForm, setPartForm] = useState({ nom: "", prenom: "", email: "", telephone: "", societe: "", ville: "", message: "" });
+  const [partError, setPartError] = useState("");
   const [partStatus, setPartStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   async function handleLogin(e: React.FormEvent) {
@@ -44,21 +45,33 @@ export default function ProLoginPage() {
   async function handlePartenariat(e: React.FormEvent) {
     e.preventDefault();
     setPartStatus("loading");
+    setPartError("");
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/partenariat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nom: `${partForm.prenom} ${partForm.nom}`,
+          prenom: partForm.prenom,
+          nom: partForm.nom,
           email: partForm.email,
           telephone: partForm.telephone,
-          sujet: `Demande de partenariat - ${partForm.societe} (${partForm.ville})`,
-          message: partForm.message || `Demande de partenariat de ${partForm.societe} à ${partForm.ville}`,
+          societe: partForm.societe,
+          ville: partForm.ville,
+          message: partForm.message,
         }),
       });
-      if (res.ok) setPartStatus("success");
-      else setPartStatus("error");
+      if (res.ok) {
+        setPartStatus("success");
+      } else {
+        const data = await res.json().catch(() => null);
+        const details = data?.details
+          ? Object.values(data.details as Record<string, string[]>).flat().filter(Boolean).join(" ")
+          : "";
+        setPartError(details || data?.error || "Erreur lors de l'envoi de la demande.");
+        setPartStatus("error");
+      }
     } catch {
+      setPartError("Erreur réseau lors de l'envoi de la demande.");
       setPartStatus("error");
     }
   }
@@ -195,7 +208,11 @@ export default function ProLoginPage() {
                   className="w-full py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50">
                   {partStatus === "loading" ? "Envoi..." : "Envoyer ma demande de partenariat"}
                 </button>
-                {partStatus === "error" && <p className="text-sm text-red-500 text-center">Erreur lors de l&apos;envoi. Réessayez.</p>}
+                {partStatus === "error" && (
+                  <p className="text-sm text-red-500 text-center">
+                    {partError || "Erreur lors de l&apos;envoi. Réessayez."}
+                  </p>
+                )}
               </form>
             )}
           </div>

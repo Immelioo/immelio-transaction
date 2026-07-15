@@ -4,7 +4,7 @@
  */
 
 const required = ["JWT_SECRET", "NEXTAUTH_URL"] as const;
-const production = ["RESEND_API_KEY"] as const;
+const smtpKeys = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"] as const;
 
 function validateEnv() {
   const missing: string[] = [];
@@ -15,12 +15,16 @@ function validateEnv() {
     }
   }
 
-  if (process.env.NODE_ENV === "production") {
-    for (const key of production) {
-      if (!process.env[key]) {
-        missing.push(`${key} (required in production)`);
-      }
-    }
+  const hasResend = Boolean(process.env.RESEND_API_KEY);
+  const hasAnySmtp = smtpKeys.some((key) => Boolean(process.env[key]));
+  const hasCompleteSmtp = smtpKeys.every((key) => Boolean(process.env[key]));
+
+  if (hasAnySmtp && !hasCompleteSmtp) {
+    missing.push("Configuration SMTP incomplète (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)");
+  }
+
+  if (process.env.NODE_ENV === "production" && !hasResend && !hasCompleteSmtp) {
+    missing.push("RESEND_API_KEY ou une configuration SMTP complète (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS)");
   }
 
   if (missing.length > 0) {
@@ -42,5 +46,11 @@ export const env = {
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   FROM_EMAIL: process.env.FROM_EMAIL || "Immelio Transaction <contact@immelio.fr>",
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || "",
+  SMTP_HOST: process.env.SMTP_HOST,
+  SMTP_PORT: process.env.SMTP_PORT,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASS: process.env.SMTP_PASS,
+  SMTP_FROM: process.env.SMTP_FROM || process.env.FROM_EMAIL || "Immelio Transaction <contact@immelio.fr>",
+  SMTP_SECURE: process.env.SMTP_SECURE,
   NODE_ENV: process.env.NODE_ENV || "development",
 } as const;

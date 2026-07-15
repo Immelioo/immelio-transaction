@@ -22,7 +22,8 @@ export default function ModifierBienPage() {
     gardien: false, piscine: false, cave: false, meuble: false,
     digicode: false, doubleVitrage: false, fibreOptique: false, alarme: false,
     cuisineEquipee: false, parquet: false, handicapAcces: false, portailAutomatique: false,
-    chargesmensuelles: "", honoraires: "", commissionPartenaire: "", enVedette: false, disponible: true,
+    chargesmensuelles: "", honoraires: "", commissionPartenaire: "",
+    statut: "DISPONIBLE", enVedette: false,
     photoUrls: [] as { url: string; nom: string }[],
   });
 
@@ -67,8 +68,8 @@ export default function ModifierBienPage() {
           chargesmensuelles: bien.chargesmensuelles?.toString() || "",
           honoraires: bien.honoraires?.toString() || "",
           commissionPartenaire: bien.commissionPartenaire?.toString() || "",
+          statut: bien.statut || "DISPONIBLE",
           enVedette: bien.enVedette || false,
-          disponible: bien.disponible !== false,
           photoUrls: bien.photos?.map((p: { url: string; alt: string }) => ({ url: p.url, nom: p.alt || "" })) || [],
         });
         setUploadedPhotoUrls([]);
@@ -85,14 +86,18 @@ export default function ModifierBienPage() {
   }
 
   function syncUploadedPhotos(nextUploadedPhotos: { url: string; nom: string }[]) {
-    setUploadedPhotoUrls(nextUploadedPhotos);
-    setForm((prev) => ({
-      ...prev,
-      photoUrls: [
-        ...prev.photoUrls.filter((photo) => !uploadedPhotoUrls.some((uploaded) => uploaded.url === photo.url)),
-        ...nextUploadedPhotos,
-      ],
-    }));
+    setUploadedPhotoUrls((previousUploadedPhotos) => {
+      setForm((prev) => ({
+        ...prev,
+        photoUrls: [
+          ...prev.photoUrls.filter(
+            (photo) => !previousUploadedPhotos.some((uploaded) => uploaded.url === photo.url),
+          ),
+          ...nextUploadedPhotos,
+        ],
+      }));
+      return nextUploadedPhotos;
+    });
   }
 
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
@@ -314,27 +319,74 @@ export default function ModifierBienPage() {
 
         {/* Photos */}
         <div className="bg-white rounded-xl p-6 border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Photos du bien</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Photos du bien</h2>
+          <p className="text-xs text-gray-400 mb-4">La première photo est la photo principale affichée sur les annonces. Glissez ou utilisez les flèches pour réorganiser.</p>
 
-          {/* Photos existantes */}
           {form.photoUrls.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm text-gray-500 mb-2">Photos actuelles ({form.photoUrls.length})</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-sm text-gray-500 mb-3">Photos actuelles ({form.photoUrls.length})</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {form.photoUrls.map((photo, i) => (
-                  <div key={i} className="relative group">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  <div key={photo.url} className="relative group">
+                    {/* Badge principale */}
+                    {i === 0 && (
+                      <div className="absolute top-1 left-1 z-10 bg-accent text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                        PRINCIPALE
+                      </div>
+                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.url}
+                      alt=""
+                      className={`w-full aspect-square object-cover rounded-lg border-2 transition-all ${i === 0 ? "border-accent" : "border-transparent"}`}
+                    />
+                    {/* Actions au hover */}
+                    <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                      {i > 0 && (
+                        <button type="button"
+                          onClick={() => setForm((prev) => {
+                            const arr = [...prev.photoUrls];
+                            const [item] = arr.splice(i, 1);
+                            arr.unshift(item);
+                            return { ...prev, photoUrls: arr };
+                          })}
+                          className="text-[10px] font-bold text-white bg-accent px-2 py-0.5 rounded w-full text-center hover:bg-accent/80">
+                          ★ Principale
+                        </button>
+                      )}
+                      <div className="flex gap-1">
+                        {i > 0 && (
+                          <button type="button"
+                            onClick={() => setForm((prev) => {
+                              const arr = [...prev.photoUrls];
+                              [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+                              return { ...prev, photoUrls: arr };
+                            })}
+                            className="text-white bg-black/50 hover:bg-black/70 rounded px-1.5 py-0.5 text-xs">
+                            ←
+                          </button>
+                        )}
+                        {i < form.photoUrls.length - 1 && (
+                          <button type="button"
+                            onClick={() => setForm((prev) => {
+                              const arr = [...prev.photoUrls];
+                              [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+                              return { ...prev, photoUrls: arr };
+                            })}
+                            className="text-white bg-black/50 hover:bg-black/70 rounded px-1.5 py-0.5 text-xs">
+                            →
+                          </button>
+                        )}
+                        <button type="button"
+                          onClick={() => {
+                            setUploadedPhotoUrls((prev) => prev.filter((u) => u.url !== photo.url));
+                            setForm((prev) => ({ ...prev, photoUrls: prev.photoUrls.filter((_, idx) => idx !== i) }));
+                          }}
+                          className="text-white bg-red-500/80 hover:bg-red-600 rounded px-1.5 py-0.5 text-xs">
+                          ✕
+                        </button>
+                      </div>
                     </div>
-                    <button type="button"
-                      onClick={() => {
-                        setUploadedPhotoUrls((prev) => prev.filter((uploaded) => uploaded.url !== photo.url));
-                        setForm((prev) => ({ ...prev, photoUrls: prev.photoUrls.filter((_, idx) => idx !== i) }));
-                      }}
-                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      x
-                    </button>
                   </div>
                 ))}
               </div>
@@ -349,18 +401,22 @@ export default function ModifierBienPage() {
             onUpload={(files) => syncUploadedPhotos(files.map((file) => ({ url: file.url, nom: file.nom })))}
           />
 
-          <div className="flex items-center gap-4 mt-4">
-            <label className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Statut du bien</label>
+              <select value={form.statut} onChange={(e) => update("statut", e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                <option value="DISPONIBLE">✅ Disponible</option>
+                <option value="EN_OPTION">🟡 En option</option>
+                <option value="SOUS_COMPROMIS">🔵 Sous compromis</option>
+                <option value="VENDU">⬛ Vendu</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2 mt-4">
               <input type="checkbox" checked={form.enVedette}
                 onChange={(e) => update("enVedette", e.target.checked)}
                 className="w-4 h-4 text-accent rounded border-gray-300 focus:ring-accent" />
-              <span className="text-sm font-medium text-gray-700">Mettre en vedette</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.disponible}
-                onChange={(e) => update("disponible", e.target.checked)}
-                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500" />
-              <span className="text-sm font-medium text-gray-700">Disponible</span>
+              <span className="text-sm font-medium text-gray-700">⭐ Mettre en vedette</span>
             </label>
           </div>
         </div>

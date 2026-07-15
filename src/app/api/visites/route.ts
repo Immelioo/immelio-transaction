@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { nom, prenom, email, telephone, dateSouhaitee, creneau, message, bienId, financement } = parsed.data;
+    const { nom, prenom, telephone, dateSouhaitee, creneau, message, bienId, financement } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
 
     // Créer ou trouver l'utilisateur
     let user = await prisma.user.findUnique({ where: { email } });

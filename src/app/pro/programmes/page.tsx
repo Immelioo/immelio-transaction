@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { formatPrix } from "@/lib/utils";
 import LotGrid from "./LotGrid";
@@ -76,12 +75,12 @@ export default async function ProProgrammesPage() {
                       {/* Thumbnail */}
                       <div className="relative w-full md:w-64 h-48 flex-shrink-0">
                         {programme.photos[0] ? (
-                          <Image
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
                             src={programme.photos[0].url}
                             alt={programme.nom}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 256px"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full bg-gray-100 flex items-center justify-center">

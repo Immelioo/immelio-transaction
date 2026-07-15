@@ -50,6 +50,7 @@ model Bien {
   longitude            Float?
   disponible           Boolean         @default(true)
   enVedette            Boolean         @default(false)
+  statut               String          @default("DISPONIBLE")
   dpe                  String?
   ges                  String?
   anneeConstruction    Int?

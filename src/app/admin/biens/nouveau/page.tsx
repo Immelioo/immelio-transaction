@@ -18,7 +18,8 @@ export default function NouveauBienPage() {
     gardien: false, piscine: false, cave: false, meuble: false,
     digicode: false, doubleVitrage: false, fibreOptique: false, alarme: false,
     cuisineEquipee: false, parquet: false, handicapAcces: false, portailAutomatique: false,
-    chargesmensuelles: "", honoraires: "", commissionPartenaire: "", enVedette: false,
+    chargesmensuelles: "", honoraires: "", commissionPartenaire: "",
+    statut: "DISPONIBLE", enVedette: false,
     photoUrls: [] as { url: string; nom: string }[],
   });
 
@@ -230,12 +231,24 @@ export default function NouveauBienPage() {
             onUpload={(files) => setForm((prev) => ({ ...prev, photoUrls: files.map(f => ({ url: f.url, nom: f.nom })) }))}
           />
 
-          <label className="flex items-center gap-2 mt-4">
-            <input type="checkbox" checked={form.enVedette}
-              onChange={(e) => update("enVedette", e.target.checked)}
-              className="w-4 h-4 text-accent rounded border-gray-300 focus:ring-accent" />
-            <span className="text-sm font-medium text-gray-700">Mettre en vedette sur la page d&apos;accueil</span>
-          </label>
+          <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-100">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Statut du bien</label>
+              <select value={form.statut} onChange={(e) => update("statut", e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary">
+                <option value="DISPONIBLE">✅ Disponible</option>
+                <option value="EN_OPTION">🟡 En option</option>
+                <option value="SOUS_COMPROMIS">🔵 Sous compromis</option>
+                <option value="VENDU">⬛ Vendu</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2 mt-4">
+              <input type="checkbox" checked={form.enVedette}
+                onChange={(e) => update("enVedette", e.target.checked)}
+                className="w-4 h-4 text-accent rounded border-gray-300 focus:ring-accent" />
+              <span className="text-sm font-medium text-gray-700">⭐ Mettre en vedette sur la page d&apos;accueil</span>
+            </label>
+          </div>
         </div>
 
         {/* Submit */}

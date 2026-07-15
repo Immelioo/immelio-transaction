@@ -20,12 +20,12 @@ function normalizeEmptyToNull(body: Record<string, unknown>) {
 }
 
 export async function GET() {
+  // Afficher tout sauf VENDU sur le site public (avec badges statut)
   const biens = await prisma.bien.findMany({
-    where: { disponible: true },
+    where: { statut: { not: "VENDU" } },
     include: { photos: { take: 1, orderBy: { ordre: "asc" } } },
     orderBy: { createdAt: "desc" },
   });
-  // Masquer les données pro/admin pour l'API publique
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const biensPublic = biens.map(({ commissionPartenaire, ...rest }) => rest);
   return NextResponse.json(biensPublic);
@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       );
     }
     const { photoUrls, ...data } = parsed.data;
+    // disponible dérivé du statut
+    data.disponible = data.statut === "DISPONIBLE";
 
     const bien = await prisma.bien.create({ data });
 

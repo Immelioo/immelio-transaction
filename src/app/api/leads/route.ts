@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { nom, prenom, email, telephone, source, notes } = parsed.data;
+    const { nom, prenom, telephone, source, notes } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
 
     const lead = await prisma.lead.create({
       data: {

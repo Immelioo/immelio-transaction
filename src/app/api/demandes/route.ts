@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
     const {
       type, transaction, budgetMin, budgetMax, surfaceMin, surfaceMax,
       nbPiecesMin, ville, description,
-      nom, prenom, email, telephone,
+      nom, prenom, telephone,
     } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
 
     // Créer ou trouver l'utilisateur — toujours CLIENT, jamais PARTENAIRE depuis cette API publique
     let user = await prisma.user.findUnique({ where: { email } });

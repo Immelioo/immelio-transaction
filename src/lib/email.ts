@@ -1,14 +1,19 @@
 import { Resend } from "resend";
+import nodemailer, { type Transporter } from "nodemailer";
+import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
 // En production, utilise la clé API Resend
 // En dev, les emails sont loggés dans la console
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
+const resend = env.RESEND_API_KEY
+  ? new Resend(env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "Immelio Transaction <contact@immelio.fr>";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "tf.immopro@gmail.com";
+const FROM_EMAIL = env.FROM_EMAIL;
+const ADMIN_EMAIL = env.ADMIN_EMAIL || "tf.immopro@gmail.com";
+const SMTP_FROM = env.SMTP_FROM;
+
+type EmailProvider = "smtp" | "resend" | "console";
 
 interface EmailOptions {
   to: string;
@@ -16,15 +21,69 @@ interface EmailOptions {
   html: string;
 }
 
-export async function sendEmail({ to, subject, html }: EmailOptions) {
-  // En dev sans clé Resend : log dans la console
+interface EmailResult {
+  success: boolean;
+  provider: EmailProvider;
+  id?: string;
+  dev?: boolean;
+  error?: unknown;
+}
+
+let smtpTransporter: Transporter | null = null;
+
+function hasSmtpConfig() {
+  return Boolean(env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASS);
+}
+
+function getSmtpTransporter() {
+  if (!hasSmtpConfig()) return null;
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: Number(env.SMTP_PORT),
+      secure: env.SMTP_SECURE === "true" || Number(env.SMTP_PORT) === 465,
+      auth: {
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+      },
+    });
+  }
+  return smtpTransporter;
+}
+
+function stringifyEmailError(error: unknown) {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+async function sendWithSmtp({ to, subject, html }: EmailOptions): Promise<EmailResult> {
+  const transporter = getSmtpTransporter();
+  if (!transporter) {
+    return { success: false, provider: "smtp", error: "SMTP non configuré" };
+  }
+
+  try {
+    const info = await transporter.sendMail({
+      from: SMTP_FROM,
+      to,
+      subject,
+      html,
+    });
+
+    return {
+      success: true,
+      provider: "smtp",
+      id: info.messageId,
+    };
+  } catch (error) {
+    logger.error("Erreur envoi email SMTP", { to, subject, error: stringifyEmailError(error) });
+    return { success: false, provider: "smtp", error };
+  }
+}
+
+async function sendWithResend({ to, subject, html }: EmailOptions): Promise<EmailResult> {
   if (!resend) {
-    console.log("\n📧 EMAIL (mode dev — pas envoyé)");
-    console.log(`   To: ${to}`);
-    console.log(`   Subject: ${subject}`);
-    console.log(`   Body: ${html.substring(0, 200)}...`);
-    console.log("");
-    return { success: true, dev: true };
+    return { success: false, provider: "resend", error: "Resend non configuré" };
   }
 
   try {
@@ -36,15 +95,65 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
     });
 
     if (error) {
-      logger.error("Erreur envoi email", { error: String(error) });
-      return { success: false, error };
+      logger.error("Erreur envoi email Resend", {
+        to,
+        subject,
+        error: stringifyEmailError(error),
+        from: FROM_EMAIL,
+      });
+      return { success: false, provider: "resend", error };
     }
 
-    return { success: true, id: data?.id };
+    return {
+      success: true,
+      provider: "resend",
+      id: data?.id,
+    };
   } catch (error) {
-    console.error("Erreur envoi email:", error);
-    return { success: false, error };
+    logger.error("Exception envoi email Resend", {
+      to,
+      subject,
+      error: stringifyEmailError(error),
+      from: FROM_EMAIL,
+    });
+    return { success: false, provider: "resend", error };
   }
+}
+
+export async function sendEmail({ to, subject, html }: EmailOptions): Promise<EmailResult> {
+  // En dev sans clé Resend : log dans la console
+  if (!resend && !hasSmtpConfig()) {
+    console.log("\n📧 EMAIL (mode dev — pas envoyé)");
+    console.log(`   To: ${to}`);
+    console.log(`   Subject: ${subject}`);
+    console.log(`   Body: ${html.substring(0, 200)}...`);
+    console.log("");
+    return { success: true, dev: true, provider: "console" };
+  }
+
+  const strategies = [
+    hasSmtpConfig() ? sendWithSmtp : null,
+    resend ? sendWithResend : null,
+  ].filter(Boolean) as Array<(options: EmailOptions) => Promise<EmailResult>>;
+
+  for (const strategy of strategies) {
+    const result = await strategy({ to, subject, html });
+    if (result.success) {
+      return result;
+    }
+  }
+
+  logger.error("Tous les providers email ont échoué", {
+    to,
+    subject,
+    providersTried: strategies.length,
+  });
+
+  return {
+    success: false,
+    provider: hasSmtpConfig() ? "smtp" : "resend",
+    error: "Tous les providers email ont échoué",
+  };
 }
 
 // ============================================

@@ -18,6 +18,7 @@ interface BienCardProps {
   photo?: string;
   dpe?: string;
   enVedette?: boolean;
+  statut?: string;
 }
 
 const dpeColors: Record<string, string> = {
@@ -40,8 +41,13 @@ function PhotoPlaceholder() {
   );
 }
 
+const statutBadge: Record<string, { label: string; cls: string }> = {
+  EN_OPTION:      { label: "En option",      cls: "bg-yellow-500" },
+  SOUS_COMPROMIS: { label: "Sous compromis", cls: "bg-blue-600" },
+};
+
 export default function BienCard({
-  id, titre, type, transaction, prix, surface, nbPieces, ville, codePostal, photo, dpe, enVedette
+  id, titre, type, transaction, prix, surface, nbPieces, ville, codePostal, photo, dpe, enVedette, statut
 }: BienCardProps) {
   const [imgError, setImgError] = useState(false);
 
@@ -64,13 +70,18 @@ export default function BienCard({
           )}
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex gap-2">
+          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${transaction === "VENTE" ? "bg-primary" : "bg-accent"}`}>
               {transaction === "VENTE" ? "Vente" : "Location"}
             </span>
             {enVedette && (
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-accent text-white">
                 En vedette
+              </span>
+            )}
+            {statut && statutBadge[statut] && (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${statutBadge[statut].cls}`}>
+                {statutBadge[statut].label}
               </span>
             )}
           </div>

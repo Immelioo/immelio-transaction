@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { nom, email, telephone, sujet, message } = parsed.data;
+    const { nom, telephone, sujet, message } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
 
     // Extraire prénom/nom
     const parts = nom.trim().split(" ");

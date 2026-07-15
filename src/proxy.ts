@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { getExpiredAuthCookieOptions } from "@/lib/cookieOptions";
 
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 function getSecret() {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -27,8 +29,36 @@ function clearAuthCookie(req: NextRequest, response: NextResponse) {
   response.cookies.set("auth-token", "", getExpiredAuthCookieOptions(req));
 }
 
+function getExpectedOrigin(req: NextRequest) {
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const forwardedHost = req.headers.get("x-forwarded-host");
+
+  if (forwardedProto && forwardedHost) {
+    return `${forwardedProto.split(",")[0].trim()}://${forwardedHost.split(",")[0].trim()}`;
+  }
+
+  return req.nextUrl.origin;
+}
+
+function hasValidOrigin(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  return origin === getExpectedOrigin(req);
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (pathname.startsWith("/api/") && MUTATING_METHODS.has(req.method)) {
+    const secFetchSite = req.headers.get("sec-fetch-site");
+    if (secFetchSite && !["same-origin", "same-site", "none"].includes(secFetchSite)) {
+      return NextResponse.json({ error: "Origine de requête invalide" }, { status: 403 });
+    }
+
+    if (!hasValidOrigin(req)) {
+      return NextResponse.json({ error: "Origine de requête invalide" }, { status: 403 });
+    }
+  }
 
   // ============================================
   // PROTECTION ROUTES ADMIN

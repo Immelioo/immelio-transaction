@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Bien non trouvé" }, { status: 404 });
   }
 
-  if (!authUser && bien.disponible === false) {
+  if (!authUser && bien.statut === "VENDU") {
     return NextResponse.json({ error: "Bien non trouvé" }, { status: 404 });
   }
 
@@ -67,6 +67,8 @@ export async function PUT(req: NextRequest, context: RouteContext) {
       );
     }
     const { photoUrls, ...data } = parsed.data;
+    // disponible dérivé du statut
+    data.disponible = data.statut === "DISPONIBLE";
 
     const bien = await prisma.bien.update({ where: { id }, data });
 

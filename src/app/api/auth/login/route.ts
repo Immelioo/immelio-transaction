@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, password } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
+    const { password } = parsed.data;
 
     // Délai constant pour éviter les timing attacks
     const user = await prisma.user.findUnique({ where: { email } });

@@ -88,6 +88,7 @@ export const bienSchema = z.object({
   ville: sanitizedString(100),
   latitude: z.coerce.number().min(-90).max(90).nullable().optional(),
   longitude: z.coerce.number().min(-180).max(180).nullable().optional(),
+  statut: z.enum(["DISPONIBLE", "EN_OPTION", "SOUS_COMPROMIS", "VENDU"]).optional().default("DISPONIBLE"),
   disponible: z.boolean().optional().default(true),
   enVedette: z.boolean().optional().default(false),
   dpe: z.enum(["A", "B", "C", "D", "E", "F", "G"]).nullable().optional(),
@@ -185,6 +186,8 @@ export const partenaireSchema = z.object({
   entreprise: sanitizedString(200),
   password: z.string().min(8, "8 caractères minimum").max(128).optional(),
 });
+
+export const partenaireUpdateSchema = partenaireSchema.partial();
 
 // ============================================
 // ADMIN — TÉMOIGNAGES (CMS contenu public)

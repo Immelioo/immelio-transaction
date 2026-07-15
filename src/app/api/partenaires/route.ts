@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { verifyAuth, unauthorizedResponse } from "@/lib/auth";
 import { sendEmail, emailInvitationPartenaire } from "@/lib/email";
-import { partenaireSchema } from "@/lib/schemas";
+import { documentPartenaireSchema, partenaireSchema } from "@/lib/schemas";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
 
 export async function GET(req: NextRequest) {
   const authUser = await verifyAuth(req, "ADMIN");
@@ -46,9 +47,17 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, nom, prenom, telephone, entreprise } = parsed.data;
+    const normalizedEmail = email.toLowerCase();
+    const documentsParsed = z.array(documentPartenaireSchema).safeParse(body.documents ?? []);
+    if (!documentsParsed.success) {
+      return NextResponse.json(
+        { error: "Documents invalides", details: documentsParsed.error.flatten() },
+        { status: 400 },
+      );
+    }
 
     // Vérifier unicité email
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       return NextResponse.json({ error: "Un compte existe déjà avec cet email" }, { status: 409 });
     }
@@ -62,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const newUser = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: "", // Aucun mot de passe — défini par le partenaire via le lien d'invitation
         nom,
         prenom,
@@ -77,19 +86,20 @@ export async function POST(req: NextRequest) {
     });
 
     // Ajouter les documents éventuels
-    if (body.documents && Array.isArray(body.documents)) {
-      for (const doc of body.documents) {
-        if (doc.nom && doc.url) {
-          await prisma.document.create({
-            data: {
-              nom: doc.nom,
-              type: doc.type || "AUTRE",
-              url: doc.url,
-              taille: 0,
-              userId: newUser.id,
-            },
-          });
-        }
+    if (documentsParsed.data.length > 0) {
+      for (const doc of documentsParsed.data) {
+        await prisma.documentPartenaire.create({
+          data: {
+            nom: doc.nom,
+            type: doc.type,
+            url: doc.url,
+            taille: doc.taille,
+            userId: newUser.id,
+            commentaire: doc.commentaire || null,
+            bienId: doc.bienId ?? null,
+            lotId: doc.lotId ?? null,
+          },
+        });
       }
     }
 
@@ -100,14 +110,14 @@ export async function POST(req: NextRequest) {
     const inviteEmail = emailInvitationPartenaire({
       prenom,
       nom,
-      email,
+      email: normalizedEmail,
       entreprise,
       codeAcces,
       inviteUrl,
     });
 
     sendEmail({
-      to: email,
+      to: normalizedEmail,
       subject: inviteEmail.subject,
       html: inviteEmail.html,
     }).catch((err) => logger.error("Erreur email invitation partenaire", { error: String(err) }));

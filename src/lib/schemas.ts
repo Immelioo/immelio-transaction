@@ -160,7 +160,7 @@ export const documentProgrammeSchema = z.object({
 
 export const lotSchema = z.object({
   numero: sanitizedString(50),
-  type: z.enum(["T1", "T2", "T3", "T4", "T5"]),
+  type: z.enum(["STUDIO", "T1", "T2", "T3", "T4", "T5"]),
   surface: z.coerce.number().positive().max(10_000),
   etage: z.coerce.number().int().min(-5).max(200),
   orientation: z.string().trim().max(50).nullable().optional(),

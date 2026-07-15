@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Email d'invitation avec lien sécurisé — aucun mot de passe en clair
-    const siteUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
     const inviteUrl = `${siteUrl}/pro/setup?token=${inviteToken}`;
 
     const inviteEmail = emailInvitationPartenaire({

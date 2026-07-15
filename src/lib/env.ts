@@ -51,7 +51,7 @@ if (typeof window === "undefined" && !isBuildTime()) {
 export const env = {
   JWT_SECRET: process.env.JWT_SECRET!,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000",
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === "production" ? "https://www.immelio.fr" : "http://localhost:3000"),
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   FROM_EMAIL: process.env.FROM_EMAIL || "Immelio Transaction <contact@immelio.fr>",
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || "",

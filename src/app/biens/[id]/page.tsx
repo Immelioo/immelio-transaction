@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!bien) return { title: "Bien introuvable" };
 
-  const baseUrl = process.env.NEXTAUTH_URL || "https://immelio.fr";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
   const description = `${bien.surface} m² à ${bien.ville} — ${new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(bien.prix)}`;
 
   return {

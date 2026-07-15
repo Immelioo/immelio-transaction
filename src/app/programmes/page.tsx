@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Programmes Neufs — Immelio Transaction",
     description: "Appartements neufs et programmes résidentiels disponibles à la vente.",
-    url: `${process.env.NEXTAUTH_URL || "https://immelio.fr"}/programmes`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr"}/programmes`,
   },
 };
 

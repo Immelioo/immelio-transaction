@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Biens Anciens — Immelio Transaction",
     description: "Appartements, maisons et locaux disponibles à la vente et à la location.",
-    url: `${process.env.NEXTAUTH_URL || "https://immelio.fr"}/biens`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr"}/biens`,
   },
 };
 
@@ -23,7 +23,7 @@ interface Props {
 export default async function BiensPage({ searchParams }: Props) {
   const params = await searchParams;
 
-  const where: Record<string, unknown> = { disponible: true };
+  const where: Record<string, unknown> = { statut: { not: "VENDU" } };
   if (params.type) where.type = params.type;
   if (params.transaction) where.transaction = params.transaction;
   if (params.ville) where.ville = { contains: params.ville, mode: "insensitive" };

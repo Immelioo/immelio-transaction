@@ -220,7 +220,7 @@ export default async function ProgrammeDetailPage({ params }: Props) {
 
               {/* Bouton plaquette en premier si dispo */}
               {programme.documentsProgramme.length > 0 && (
-                <a href={programme.documentsProgramme[0].url} target="_blank" rel="noopener noreferrer"
+                <a href={`/api/programmes/${programme.id}/documents/${programme.documentsProgramme[0].id}`} download
                   className="flex items-center justify-center gap-2 w-full mt-6 px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -243,7 +243,7 @@ export default async function ProgrammeDetailPage({ params }: Props) {
                 <h3 className="font-bold text-gray-900 mb-4">Documents à télécharger</h3>
                 <div className="space-y-2">
                   {programme.documentsProgramme.map((doc) => (
-                    <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
+                    <a key={doc.id} href={`/api/programmes/${programme.id}/documents/${doc.id}`} download
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-primary/5 transition-colors group">
                       <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

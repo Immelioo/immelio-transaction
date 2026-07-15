@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || "https://immelio.fr";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
 
   // Pages statiques
   const staticPages: MetadataRoute.Sitemap = [
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Pages dynamiques — biens
   const biens = await prisma.bien.findMany({
-    where: { disponible: true },
+    where: { statut: { not: "VENDU" } },
     select: { id: true, updatedAt: true },
   });
 

@@ -5,7 +5,7 @@ import CookieBanner from "@/components/ui/CookieBanner";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const baseUrl = process.env.NEXTAUTH_URL || "https://immelio.fr";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

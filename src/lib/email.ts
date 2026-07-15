@@ -12,6 +12,7 @@ const resend = env.RESEND_API_KEY
 const FROM_EMAIL = env.FROM_EMAIL;
 const ADMIN_EMAIL = env.ADMIN_EMAIL || "tf.immopro@gmail.com";
 const SMTP_FROM = env.SMTP_FROM;
+const SITE_URL = env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
 
 type EmailProvider = "smtp" | "resend" | "console";
 
@@ -265,7 +266,7 @@ export function emailNouvelleVisiteAdmin(params: {
           ${params.message ? `<p style="margin: 4px 0;"><strong>Message :</strong> ${params.message}</p>` : ""}
         </div>
 
-        <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/admin/visites"
+        <a href="${SITE_URL}/admin/visites"
            style="display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">
           Voir dans le CRM
         </a>
@@ -306,7 +307,7 @@ export function emailNouveauContactAdmin(params: {
           <p style="margin: 12px 0 0 0; line-height: 1.6; white-space: pre-wrap;">${params.message}</p>
         </div>
 
-        <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/admin/leads"
+        <a href="${SITE_URL}/admin/leads"
            style="display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">
           Voir dans le CRM
         </a>
@@ -348,7 +349,7 @@ export function emailConfirmationContact(params: {
           directement au <strong>07 71 55 64 83</strong>.
         </p>
 
-        <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/biens"
+        <a href="${SITE_URL}/biens"
            style="display: inline-block; background: #d4a853; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">
           Voir nos biens
         </a>
@@ -398,7 +399,7 @@ export function emailNouvelleEstimationAdmin(params: {
           <p style="margin: 16px 0 0 0; font-size: 13px; white-space: pre-wrap; color: #555;">${params.details}</p>
         </div>
 
-        <a href="${process.env.NEXTAUTH_URL || "http://localhost:3000"}/admin/leads"
+        <a href="${SITE_URL}/admin/leads"
            style="display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">
           Voir dans le CRM
         </a>
@@ -500,6 +501,6 @@ export function emailBienvenuePartenaire(params: {
     email: params.email,
     entreprise: params.entreprise,
     codeAcces: params.codeAcces,
-    inviteUrl: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/pro/login`,
+    inviteUrl: `${SITE_URL}/pro/login`,
   });
 }

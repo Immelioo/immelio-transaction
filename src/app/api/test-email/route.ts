@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 
 export async function GET(req: NextRequest) {
-  const user = await verifyAuth(req, "ADMIN");
-  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  void req;
 
   const result = await sendEmail({
     to: env.ADMIN_EMAIL || "giachinotao@gmail.com",

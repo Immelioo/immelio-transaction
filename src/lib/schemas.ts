@@ -66,7 +66,7 @@ export const demandeRechercheSchema = z.object({
   nom: sanitizedString(100),
   prenom: sanitizedString(100),
   email: z.string().trim().email("Email invalide").max(255),
-  telephone: z.string().trim().regex(phoneRegex, "Téléphone invalide"),
+  telephone: z.string().trim().regex(phoneRegex, "Téléphone invalide").optional().or(z.literal("")),
 });
 
 // ============================================

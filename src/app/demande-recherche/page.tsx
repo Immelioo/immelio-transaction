@@ -17,10 +17,19 @@ export default function DemandeRecherchePage() {
     e.preventDefault();
     setStatus("loading");
     try {
+      const payload = {
+        ...form,
+        budgetMin: form.budgetMin !== "" ? Number(form.budgetMin) : undefined,
+        budgetMax: form.budgetMax !== "" ? Number(form.budgetMax) : undefined,
+        surfaceMin: form.surfaceMin !== "" ? Number(form.surfaceMin) : undefined,
+        surfaceMax: form.surfaceMax !== "" ? Number(form.surfaceMax) : undefined,
+        nbPiecesMin: form.nbPiecesMin !== "" ? Number(form.nbPiecesMin) : undefined,
+        telephone: form.telephone || undefined,
+      };
       const res = await fetch("/api/demandes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setStatus("success");

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyAuth, unauthorizedResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 
-const VALID_STATUTS = ["NOUVELLE", "EN_COURS", "TRAITEE", "FERMEE"];
+const VALID_STATUTS = ["NOUVELLE", "EN_COURS", "TRAITEE", "ARCHIVEE"];
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyAuth(req, "ADMIN");

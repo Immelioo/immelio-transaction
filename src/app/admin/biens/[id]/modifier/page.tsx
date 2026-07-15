@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
@@ -12,7 +12,7 @@ export default function ModifierBienPage() {
   const params = useParams();
   const id = params.id as string;
   const [status, setStatus] = useState<"idle" | "loading" | "saving" | "success" | "error">("loading");
-  const [uploadedPhotoUrls, setUploadedPhotoUrls] = useState<{ url: string; nom: string }[]>([]);
+  const uploadedPhotoUrlsRef = useRef<{ url: string; nom: string }[]>([]);
   const [form, setForm] = useState({
     titre: "", description: "", type: "APPARTEMENT", transaction: "VENTE",
     prix: "", surface: "", nbPieces: "", nbChambres: "",
@@ -72,7 +72,7 @@ export default function ModifierBienPage() {
           enVedette: bien.enVedette || false,
           photoUrls: bien.photos?.map((p: { url: string; alt: string }) => ({ url: p.url, nom: p.alt || "" })) || [],
         });
-        setUploadedPhotoUrls([]);
+        uploadedPhotoUrlsRef.current = [];
         setStatus("idle");
       } catch {
         setStatus("error");
@@ -86,18 +86,18 @@ export default function ModifierBienPage() {
   }
 
   function syncUploadedPhotos(nextUploadedPhotos: { url: string; nom: string }[]) {
-    setUploadedPhotoUrls((previousUploadedPhotos) => {
-      setForm((prev) => ({
-        ...prev,
-        photoUrls: [
-          ...prev.photoUrls.filter(
-            (photo) => !previousUploadedPhotos.some((uploaded) => uploaded.url === photo.url),
-          ),
-          ...nextUploadedPhotos,
-        ],
-      }));
-      return nextUploadedPhotos;
-    });
+    const previousUploadedPhotos = uploadedPhotoUrlsRef.current;
+    uploadedPhotoUrlsRef.current = nextUploadedPhotos;
+
+    setForm((prev) => ({
+      ...prev,
+      photoUrls: [
+        ...prev.photoUrls.filter(
+          (photo) => !previousUploadedPhotos.some((uploaded) => uploaded.url === photo.url),
+        ),
+        ...nextUploadedPhotos,
+      ],
+    }));
   }
 
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
@@ -379,7 +379,9 @@ export default function ModifierBienPage() {
                         )}
                         <button type="button"
                           onClick={() => {
-                            setUploadedPhotoUrls((prev) => prev.filter((u) => u.url !== photo.url));
+                            uploadedPhotoUrlsRef.current = uploadedPhotoUrlsRef.current.filter(
+                              (uploadedPhoto) => uploadedPhoto.url !== photo.url,
+                            );
                             setForm((prev) => ({ ...prev, photoUrls: prev.photoUrls.filter((_, idx) => idx !== i) }));
                           }}
                           className="text-white bg-red-500/80 hover:bg-red-600 rounded px-1.5 py-0.5 text-xs">

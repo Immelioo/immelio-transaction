@@ -5,7 +5,7 @@ import ProSidebar from "@/components/pro/ProSidebar";
 
 export default async function ProBiensPage() {
   const biens = await prisma.bien.findMany({
-    where: { disponible: true },
+    where: { statut: { not: "VENDU" } },
     include: {
       photos: { take: 1, orderBy: { ordre: "asc" } },
     },

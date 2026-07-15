@@ -298,3 +298,31 @@ model SiteSetting {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Contact {
+  id         String    @id @default(cuid())
+  nom        String
+  prenom     String?
+  telephone  String?
+  email      String?
+  entreprise String?
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  dossiers   Dossier[]
+}
+
+model Dossier {
+  id           String    @id @default(cuid())
+  titre        String
+  type         String    @default("VENTE")
+  statut       String    @default("EN_COURS")
+  bien         String?
+  montant      Float?
+  notes        String?
+  dateEcheance DateTime?
+  contactId    String
+  contact      Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

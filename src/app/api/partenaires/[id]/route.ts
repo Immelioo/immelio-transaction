@@ -59,6 +59,7 @@ export async function PUT(
       );
     }
     const payload = parsed.data;
+    const contacte = typeof body.contacte === "boolean" ? body.contacte : undefined;
 
     const data: Record<string, unknown> = {};
 
@@ -70,9 +71,9 @@ export async function PUT(
     if (payload.entreprise !== undefined) data.entreprise = payload.entreprise;
 
     // Marquer comme contacté
-    if (body.contacte !== undefined) {
-      data.contacte = body.contacte;
-      if (body.contacte === true) {
+    if (contacte !== undefined) {
+      data.contacte = contacte;
+      if (contacte === true) {
         data.dateContact = new Date();
       }
     }

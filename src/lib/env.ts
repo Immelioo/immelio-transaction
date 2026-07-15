@@ -6,6 +6,13 @@
 const required = ["JWT_SECRET", "NEXTAUTH_URL"] as const;
 const smtpKeys = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"] as const;
 
+function isBuildTime() {
+  return (
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.npm_lifecycle_event === "build"
+  );
+}
+
 function validateEnv() {
   const missing: string[] = [];
 
@@ -34,8 +41,10 @@ function validateEnv() {
   }
 }
 
-// Only validate in server context (not during client-side bundling)
-if (typeof window === "undefined") {
+// Validation côté serveur hors phase de build.
+// Next évalue aussi certains modules d'API pendant `next build` pour collecter les données ;
+// à ce stade, on veut compiler sans exiger la totalité des secrets runtime.
+if (typeof window === "undefined" && !isBuildTime()) {
   validateEnv();
 }
 

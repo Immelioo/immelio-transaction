@@ -36,7 +36,7 @@ export default function ReinviteButton({ partnerId, partnerEmail }: ReinviteButt
   }
 
   if (done) {
-    return <span className="text-xs text-green-600 font-medium">Invitation envoyée ✓</span>;
+    return <span className="text-xs text-green-600 font-medium">✓ Renvoyée</span>;
   }
 
   return (

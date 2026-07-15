@@ -8,6 +8,8 @@ import { rateLimitResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { getAuthCookieOptions } from "@/lib/cookieOptions";
 
+const DUMMY_PASSWORD_HASH = "$2b$10$I4ZdYh8q0yy681FxWXtXnOYZP/r2K7xvVnUyxOe0onWUkubVrsH0q";
+
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 
@@ -33,11 +35,9 @@ export async function POST(req: NextRequest) {
     // Délai constant pour éviter les timing attacks
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // On vérifie le mot de passe même si l'utilisateur n'existe pas (dummy hash)
-    const dummyHash = "$2b$10$dummyhashtopreventtimingattack.invalid";
     const passwordValid = user
       ? await bcrypt.compare(password, user.password)
-      : await bcrypt.compare(password, dummyHash).then(() => false);
+      : await bcrypt.compare(password, DUMMY_PASSWORD_HASH).then(() => false);
 
     if (!user || !passwordValid) {
       logger.warn("Tentative de connexion échouée", { email, ip });

@@ -29,6 +29,14 @@ export async function GET(request: NextRequest) {
     const partenaireId = searchParams.get("partenaireId");
 
     if (partenaireId) {
+      const partenaire = await prisma.user.findUnique({
+        where: { id: partenaireId },
+        select: { id: true, role: true },
+      });
+      if (!partenaire || partenaire.role !== "PARTENAIRE") {
+        return NextResponse.json({ error: "Partenaire invalide" }, { status: 400 });
+      }
+
       const messages = await prisma.message.findMany({
         where: { OR: [{ expediteurId: partenaireId }, { destinataireId: partenaireId }] },
         orderBy: { createdAt: "asc" },
@@ -147,6 +155,13 @@ export async function PATCH(request: NextRequest) {
     } else {
       if (!partenaireId) {
         return NextResponse.json({ error: "partenaireId requis" }, { status: 400 });
+      }
+      const partenaire = await prisma.user.findUnique({
+        where: { id: partenaireId },
+        select: { role: true },
+      });
+      if (!partenaire || partenaire.role !== "PARTENAIRE") {
+        return NextResponse.json({ error: "Partenaire invalide" }, { status: 400 });
       }
       await prisma.message.updateMany({
         where: { expediteurId: partenaireId, lu: false },

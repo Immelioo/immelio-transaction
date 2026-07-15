@@ -1,12 +1,15 @@
 import jwt from "jsonwebtoken";
 
-if (!process.env.JWT_SECRET) {
-  // Pas de repli silencieux : un secret par défaut connu permettrait de forger un JWT admin valide.
-  throw new Error("JWT_SECRET manquant dans les variables d'environnement !");
-}
-
-const JWT_SECRET: string = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "7d";
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    // Pas de repli silencieux : un secret par défaut connu permettrait de forger un JWT admin valide.
+    throw new Error("JWT_SECRET manquant dans les variables d'environnement !");
+  }
+  return secret;
+}
 
 export interface JWTPayload {
   userId: string;
@@ -15,7 +18,7 @@ export interface JWTPayload {
 }
 
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     expiresIn: JWT_EXPIRES_IN,
     algorithm: "HS256",
   });
@@ -23,7 +26,7 @@ export function generateToken(payload: JWTPayload): string {
 
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
+    const decoded = jwt.verify(token, getJwtSecret(), {
       algorithms: ["HS256"],
     }) as JWTPayload;
     return decoded;

@@ -172,15 +172,18 @@ export default function EstimationPage() {
                 {typesBien.map((t) => (
                   <button
                     key={t.value}
+                    type="button"
                     onClick={() => update("type", t.value)}
-                    className={`p-4 rounded-xl border-2 text-center transition-all hover:border-primary ${
-                      form.type === t.value ? "border-primary bg-primary/5" : "border-gray-200"
+                    className={`p-4 rounded-xl border-2 text-center transition-all ${
+                      form.type === t.value
+                        ? "border-primary bg-slate-100 ring-2 ring-primary ring-offset-1"
+                        : "border-gray-200 hover:border-primary hover:bg-gray-50"
                     }`}
                   >
                     <svg className={`w-8 h-8 mx-auto mb-2 ${form.type === t.value ? "text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={t.icon} />
                     </svg>
-                    <span className={`text-sm font-medium ${form.type === t.value ? "text-primary" : "text-gray-700"}`}>{t.label}</span>
+                    <span className={`text-sm font-medium ${form.type === t.value ? "text-primary font-bold" : "text-gray-700"}`}>{t.label}</span>
                   </button>
                 ))}
               </div>

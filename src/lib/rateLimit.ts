@@ -107,7 +107,7 @@ export function getClientIp(req: Request): string {
 // Configurations prédéfinies
 export const RATE_LIMITS = {
   login: { limit: 5, windowMs: 60 * 1000 },       // 5/min
-  contact: { limit: 5, windowMs: 60 * 1000 },      // 5/min
+  contact: { limit: 10, windowMs: 60 * 1000 },     // 10/min
   visite: { limit: 3, windowMs: 60 * 1000 },       // 3/min
   demande: { limit: 3, windowMs: 60 * 1000 },      // 3/min
   upload: { limit: 10, windowMs: 60 * 1000 },      // 10/min

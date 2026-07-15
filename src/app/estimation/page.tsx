@@ -24,6 +24,7 @@ const typesBien = [
 export default function EstimationPage() {
   const [etape, setEtape] = useState(1);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [form, setForm] = useState({
     type: "",
     surface: "",
@@ -62,21 +63,28 @@ export default function EstimationPage() {
 
   async function handleSubmit() {
     setStatus("loading");
+    setErrorMsg("");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nom: `${form.prenom} ${form.nom}`,
+          nom: `${form.prenom} ${form.nom}`.trim(),
           email: form.email,
-          telephone: form.telephone,
+          telephone: form.telephone || undefined,
           sujet: `Demande d'estimation — ${form.type} ${form.surface}m² à ${form.ville}`,
-          message: `Type: ${form.type}\nSurface: ${form.surface}m²\nPièces: ${form.nbPieces}\nChambres: ${form.nbChambres}\nÉtage: ${form.etage || "N/A"}\nAnnée: ${form.anneeConstruction || "N/A"}\nÉtat: ${form.etat || "N/A"}\nAdresse: ${form.adresse}, ${form.codePostal} ${form.ville}\nÉquipements: ${[form.parking && "Parking", form.terrasse && "Terrasse", form.balcon && "Balcon", form.cave && "Cave", form.piscine && "Piscine", form.ascenseur && "Ascenseur"].filter(Boolean).join(", ") || "Aucun"}\n\nCommentaire: ${form.commentaire || "Aucun"}`,
+          message: `Type: ${form.type}\nSurface: ${form.surface}m²\nPièces: ${form.nbPieces}\nChambres: ${form.nbChambres || "N/A"}\nÉtage: ${form.etage || "N/A"}\nAnnée: ${form.anneeConstruction || "N/A"}\nÉtat: ${form.etat || "N/A"}\nAdresse: ${form.adresse || "N/A"}, ${form.codePostal} ${form.ville}\nÉquipements: ${[form.parking && "Parking", form.terrasse && "Terrasse", form.balcon && "Balcon", form.cave && "Cave", form.piscine && "Piscine", form.ascenseur && "Ascenseur"].filter(Boolean).join(", ") || "Aucun"}\n\nCommentaire: ${form.commentaire || "Aucun"}`,
         }),
       });
-      if (res.ok) setStatus("success");
-      else setStatus("error");
+      if (res.ok) {
+        setStatus("success");
+      } else {
+        const data = await res.json().catch(() => null);
+        setErrorMsg(data?.error || `Erreur ${res.status} — veuillez réessayer.`);
+        setStatus("error");
+      }
     } catch {
+      setErrorMsg("Erreur réseau — vérifiez votre connexion et réessayez.");
       setStatus("error");
     }
   }
@@ -338,10 +346,15 @@ export default function EstimationPage() {
                 Suivant
               </button>
             ) : (
-              <button onClick={handleSubmit} disabled={!canNext() || status === "loading"}
-                className="px-8 py-2.5 bg-accent text-white rounded-lg font-semibold hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                {status === "loading" ? "Envoi..." : "Obtenir mon estimation gratuite"}
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                {status === "error" && errorMsg && (
+                  <p className="text-xs text-red-600 text-right">{errorMsg}</p>
+                )}
+                <button onClick={handleSubmit} disabled={!canNext() || status === "loading"}
+                  className="px-8 py-2.5 bg-accent text-white rounded-lg font-semibold hover:bg-accent-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  {status === "loading" ? "Envoi..." : "Obtenir mon estimation gratuite"}
+                </button>
+              </div>
             )}
           </div>
         </div>

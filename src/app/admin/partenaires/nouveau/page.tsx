@@ -8,6 +8,7 @@ import { authFetch } from "@/lib/authFetch";
 export default function NouveauPartenairePage() {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [form, setForm] = useState({
     nom: "", prenom: "", email: "", telephone: "",
     entreprise: "",
@@ -57,6 +58,7 @@ export default function NouveauPartenairePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("loading");
+    setErrorMsg("");
     try {
       const res = await authFetch("/api/partenaires", {
         method: "POST",
@@ -66,9 +68,21 @@ export default function NouveauPartenairePage() {
       if (res.ok) {
         router.push("/admin/partenaires");
       } else {
+        const data = await res.json().catch(() => null);
+        if (res.status === 409) {
+          setErrorMsg("Un compte existe déjà avec cet email.");
+        } else if (data?.details) {
+          const fields = Object.entries(data.details as Record<string, string[]>)
+            .map(([k, v]) => `${k}: ${v.join(", ")}`)
+            .join(" | ");
+          setErrorMsg(fields);
+        } else {
+          setErrorMsg(data?.error || `Erreur ${res.status}`);
+        }
         setStatus("error");
       }
     } catch {
+      setErrorMsg("Erreur réseau — réessayez.");
       setStatus("error");
     }
   }
@@ -158,9 +172,12 @@ export default function NouveauPartenairePage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                   <option value="MANDAT">Mandat</option>
                   <option value="COMPROMIS">Compromis</option>
-                  <option value="BAIL">Bail</option>
-                  <option value="DIAGNOSTIC">Diagnostic</option>
-                  <option value="FACTURE">Facture</option>
+                  <option value="OFFRE">Offre d&apos;achat</option>
+                  <option value="RESERVATION">Réservation</option>
+                  <option value="FINANCEMENT">Financement</option>
+                  <option value="CARTE_T">Carte T (carte professionnelle)</option>
+                  <option value="KBIS">Kbis (extrait registre)</option>
+                  <option value="CONTRAT_PARTENARIAT">Contrat de partenariat</option>
                   <option value="AUTRE">Autre</option>
                 </select>
               </div>
@@ -190,7 +207,10 @@ export default function NouveauPartenairePage() {
         </div>
 
         {status === "error" && (
-          <p className="text-sm text-red-500">Erreur lors de la création. Vérifiez les champs.</p>
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p className="text-sm text-red-700 font-medium">Erreur lors de la création.</p>
+            {errorMsg && <p className="text-xs text-red-600 mt-1">{errorMsg}</p>}
+          </div>
         )}
       </form>
     </div>

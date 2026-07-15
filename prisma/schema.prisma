@@ -61,6 +61,14 @@ model Bien {
   piscine              Boolean         @default(false)
   cave                 Boolean         @default(false)
   meuble               Boolean         @default(false)
+  digicode             Boolean         @default(false)
+  doubleVitrage        Boolean         @default(false)
+  fibreOptique         Boolean         @default(false)
+  alarme               Boolean         @default(false)
+  cuisineEquipee       Boolean         @default(false)
+  parquet              Boolean         @default(false)
+  handicapAcces        Boolean         @default(false)
+  portailAutomatique   Boolean         @default(false)
   chargesmensuelles    Float?
   honoraires           Float?
   commissionPartenaire Float?

@@ -20,6 +20,8 @@ export default function ModifierBienPage() {
     dpe: "", ges: "", anneeConstruction: "",
     parking: false, balcon: false, terrasse: false, ascenseur: false,
     gardien: false, piscine: false, cave: false, meuble: false,
+    digicode: false, doubleVitrage: false, fibreOptique: false, alarme: false,
+    cuisineEquipee: false, parquet: false, handicapAcces: false, portailAutomatique: false,
     chargesmensuelles: "", honoraires: "", commissionPartenaire: "", enVedette: false, disponible: true,
     photoUrls: [] as { url: string; nom: string }[],
   });
@@ -54,6 +56,14 @@ export default function ModifierBienPage() {
           piscine: bien.piscine || false,
           cave: bien.cave || false,
           meuble: bien.meuble || false,
+          digicode: bien.digicode || false,
+          doubleVitrage: bien.doubleVitrage || false,
+          fibreOptique: bien.fibreOptique || false,
+          alarme: bien.alarme || false,
+          cuisineEquipee: bien.cuisineEquipee || false,
+          parquet: bien.parquet || false,
+          handicapAcces: bien.handicapAcces || false,
+          portailAutomatique: bien.portailAutomatique || false,
           chargesmensuelles: bien.chargesmensuelles?.toString() || "",
           honoraires: bien.honoraires?.toString() || "",
           commissionPartenaire: bien.commissionPartenaire?.toString() || "",
@@ -85,9 +95,12 @@ export default function ModifierBienPage() {
     }));
   }
 
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
+    setErrorDetail(null);
     try {
       const res = await authFetch(`/api/biens/${id}`, {
         method: "PUT",
@@ -98,9 +111,19 @@ export default function ModifierBienPage() {
         setStatus("success");
         router.push(`/admin/biens/${id}`);
       } else {
+        const data = await res.json().catch(() => null);
+        if (data?.details) {
+          const fields = Object.entries(data.details as Record<string, string[]>)
+            .map(([k, v]) => `${k}: ${v.join(", ")}`)
+            .join(" | ");
+          setErrorDetail(fields);
+        } else {
+          setErrorDetail(data?.error || `Erreur ${res.status}`);
+        }
         setStatus("error");
       }
     } catch {
+      setErrorDetail("Erreur réseau");
       setStatus("error");
     }
   }
@@ -266,10 +289,18 @@ export default function ModifierBienPage() {
               { key: "balcon", label: "Balcon" },
               { key: "terrasse", label: "Terrasse" },
               { key: "ascenseur", label: "Ascenseur" },
-              { key: "gardien", label: "Gardien" },
+              { key: "gardien", label: "Gardien / Concierge" },
               { key: "piscine", label: "Piscine" },
               { key: "cave", label: "Cave" },
               { key: "meuble", label: "Meublé" },
+              { key: "digicode", label: "Digicode / Interphone" },
+              { key: "doubleVitrage", label: "Double vitrage" },
+              { key: "fibreOptique", label: "Fibre optique" },
+              { key: "alarme", label: "Alarme" },
+              { key: "cuisineEquipee", label: "Cuisine équipée" },
+              { key: "parquet", label: "Parquet" },
+              { key: "handicapAcces", label: "Accès PMR" },
+              { key: "portailAutomatique", label: "Portail automatique" },
             ].map((eq) => (
               <label key={eq.key} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                 <input type="checkbox" checked={form[eq.key as keyof typeof form] as boolean}
@@ -345,7 +376,10 @@ export default function ModifierBienPage() {
         </div>
 
         {status === "error" && (
-          <p className="text-sm text-red-500">Erreur lors de la sauvegarde. Vérifiez les champs et réessayez.</p>
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+            <p className="text-sm text-red-700 font-medium">Erreur lors de la sauvegarde.</p>
+            {errorDetail && <p className="text-xs text-red-600 mt-1">{errorDetail}</p>}
+          </div>
         )}
         {status === "success" && (
           <p className="text-sm text-green-600">Bien modifié avec succès ! Redirection...</p>

@@ -7,9 +7,12 @@ import ProSidebar from "@/components/pro/ProSidebar";
 const DOC_TYPES = [
   { value: "MANDAT", label: "Mandat" },
   { value: "COMPROMIS", label: "Compromis" },
-  { value: "OFFRE", label: "Offre" },
+  { value: "OFFRE", label: "Offre d'achat" },
   { value: "RESERVATION", label: "Réservation" },
   { value: "FINANCEMENT", label: "Financement" },
+  { value: "CARTE_T", label: "Carte T (carte professionnelle)" },
+  { value: "KBIS", label: "Kbis (extrait registre)" },
+  { value: "CONTRAT_PARTENARIAT", label: "Contrat de partenariat" },
   { value: "AUTRE", label: "Autre" },
 ];
 
@@ -99,6 +102,7 @@ export default function EnvoyerDocumentPage() {
           type: docType,
           url: uploadData.url,
           taille: file.size,
+          commentaire: message || undefined,
         }),
       });
 

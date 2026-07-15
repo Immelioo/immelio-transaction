@@ -16,6 +16,8 @@ export default function NouveauBienPage() {
     dpe: "", ges: "", anneeConstruction: "",
     parking: false, balcon: false, terrasse: false, ascenseur: false,
     gardien: false, piscine: false, cave: false, meuble: false,
+    digicode: false, doubleVitrage: false, fibreOptique: false, alarme: false,
+    cuisineEquipee: false, parquet: false, handicapAcces: false, portailAutomatique: false,
     chargesmensuelles: "", honoraires: "", commissionPartenaire: "", enVedette: false,
     photoUrls: [] as { url: string; nom: string }[],
   });
@@ -194,10 +196,18 @@ export default function NouveauBienPage() {
               { key: "balcon", label: "Balcon" },
               { key: "terrasse", label: "Terrasse" },
               { key: "ascenseur", label: "Ascenseur" },
-              { key: "gardien", label: "Gardien" },
+              { key: "gardien", label: "Gardien / Concierge" },
               { key: "piscine", label: "Piscine" },
               { key: "cave", label: "Cave" },
               { key: "meuble", label: "Meublé" },
+              { key: "digicode", label: "Digicode / Interphone" },
+              { key: "doubleVitrage", label: "Double vitrage" },
+              { key: "fibreOptique", label: "Fibre optique" },
+              { key: "alarme", label: "Alarme" },
+              { key: "cuisineEquipee", label: "Cuisine équipée" },
+              { key: "parquet", label: "Parquet" },
+              { key: "handicapAcces", label: "Accès PMR" },
+              { key: "portailAutomatique", label: "Portail automatique" },
             ].map((eq) => (
               <label key={eq.key} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                 <input type="checkbox" checked={form[eq.key as keyof typeof form] as boolean}

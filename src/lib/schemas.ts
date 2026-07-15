@@ -101,8 +101,16 @@ export const bienSchema = z.object({
   piscine: z.boolean().optional().default(false),
   cave: z.boolean().optional().default(false),
   meuble: z.boolean().optional().default(false),
+  digicode: z.boolean().optional().default(false),
+  doubleVitrage: z.boolean().optional().default(false),
+  fibreOptique: z.boolean().optional().default(false),
+  alarme: z.boolean().optional().default(false),
+  cuisineEquipee: z.boolean().optional().default(false),
+  parquet: z.boolean().optional().default(false),
+  handicapAcces: z.boolean().optional().default(false),
+  portailAutomatique: z.boolean().optional().default(false),
   chargesmensuelles: z.coerce.number().min(0).max(100_000).nullable().optional(),
-  honoraires: z.coerce.number().min(0).max(100).nullable().optional(),
+  honoraires: z.coerce.number().min(0).max(100_000).nullable().optional(),
   commissionPartenaire: z.coerce.number().min(0).max(100).nullable().optional(),
   photoUrls: z.union([z.string(), z.array(z.union([z.string(), z.object({ url: z.string(), nom: z.string().optional() })]))]).optional(),
 });
@@ -216,7 +224,7 @@ export const activiteSchema = z.object({
 
 export const documentPartenaireSchema = z.object({
   nom: sanitizedString(200),
-  type: z.enum(["MANDAT", "COMPROMIS", "OFFRE", "RESERVATION", "FINANCEMENT", "AUTRE"]),
+  type: z.enum(["MANDAT", "COMPROMIS", "OFFRE", "RESERVATION", "FINANCEMENT", "CARTE_T", "KBIS", "CONTRAT_PARTENARIAT", "AUTRE"]),
   url: z.string().trim().min(1).max(2000),
   taille: z.coerce.number().min(0).max(50_000_000).optional().default(0),
   bienId: z.string().cuid().nullable().optional(),

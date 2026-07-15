@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+
 import FileUpload from "@/components/ui/FileUpload";
 import { authFetch } from "@/lib/authFetch";
 
@@ -324,7 +324,8 @@ export default function ModifierBienPage() {
                 {form.photoUrls.map((photo, i) => (
                   <div key={i} className="relative group">
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                      <Image src={photo.url} alt="" fill className="object-cover" sizes="80px" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.url} alt="" className="w-full h-full object-cover" />
                     </div>
                     <button type="button"
                       onClick={() => {

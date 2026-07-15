@@ -77,8 +77,14 @@ export async function POST(req: NextRequest) {
       userId: user.id, url: result.secure_url, mimeType, size: file.size,
     });
 
+    // Insert f_auto,q_auto so browsers receive WebP/JPEG instead of raw HEIC
+    const url = result.secure_url.replace(
+      "/image/upload/",
+      "/image/upload/f_auto,q_auto/"
+    );
+
     return NextResponse.json(
-      { url: result.secure_url, nom: file.name, taille: file.size },
+      { url, nom: file.name, taille: file.size },
       { status: 201 }
     );
   } catch (error) {

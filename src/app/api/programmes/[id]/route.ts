@@ -99,6 +99,40 @@ export async function PUT(
       }
     }
 
+    // Mettre à jour les photos si fournies
+    if (body.photos !== undefined && Array.isArray(body.photos)) {
+      await prisma.photoProgramme.deleteMany({ where: { programmeId: id } });
+      for (let i = 0; i < body.photos.length; i++) {
+        const photo = body.photos[i] as { url: string; nom?: string };
+        await prisma.photoProgramme.create({
+          data: {
+            url: photo.url,
+            alt: photo.nom || programme.nom,
+            ordre: i,
+            type: "PHOTO",
+            programmeId: id,
+          },
+        });
+      }
+    }
+
+    // Mettre à jour les documents si fournis
+    if (body.documents !== undefined && Array.isArray(body.documents)) {
+      await prisma.documentProgramme.deleteMany({ where: { programmeId: id } });
+      for (const doc of body.documents as { url: string; nom: string; type?: string; taille?: number }[]) {
+        await prisma.documentProgramme.create({
+          data: {
+            url: doc.url,
+            nom: doc.nom,
+            type: doc.type || "PLAQUETTE",
+            taille: doc.taille || 0,
+            public: true,
+            programmeId: id,
+          },
+        });
+      }
+    }
+
     return NextResponse.json(programme);
   } catch (error) {
     logger.error("Erreur PUT programme", { error: String(error) });

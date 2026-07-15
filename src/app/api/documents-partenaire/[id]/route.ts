@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorizedResponse, forbiddenResponse } from "@/lib/auth";
+import { proxyFileDownload } from "@/lib/fileDownload";
 import { logger } from "@/lib/logger";
 
 export async function GET(
@@ -30,7 +31,7 @@ export async function GET(
     ip: request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown",
   });
 
-  return NextResponse.redirect(doc.url);
+  return proxyFileDownload(request, doc.url, doc.nom);
 }
 
 export async function PUT(

@@ -3,37 +3,72 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import FileUpload from "@/components/ui/FileUpload";
 import { authFetch } from "@/lib/authFetch";
+
+const DOC_TYPES_PROGRAMME = [
+  { value: "PLAQUETTE", label: "Plaquette commerciale" },
+  { value: "PLAN", label: "Plan" },
+  { value: "NOTICE_DESCRIPTIVE", label: "Notice descriptive" },
+  { value: "GRILLE_PRIX", label: "Grille de prix" },
+  { value: "AUTRE", label: "Autre" },
+];
+
+interface LotForm {
+  numero: string;
+  type: string;
+  surface: string;
+  etage: string;
+  prix: string;
+  nbChambres: string;
+  statut: string;
+  orientation: string;
+}
+
+interface ExistingPhoto {
+  id: string;
+  url: string;
+  alt: string;
+  ordre: number;
+}
+
+interface ExistingDoc {
+  id: string;
+  url: string;
+  nom: string;
+  type: string;
+  taille: number;
+}
+
+interface UploadedFile {
+  url: string;
+  nom: string;
+  taille: number;
+}
+
+const emptyLot: LotForm = {
+  numero: "",
+  type: "T2",
+  surface: "",
+  etage: "0",
+  prix: "",
+  nbChambres: "1",
+  statut: "DISPONIBLE",
+  orientation: "",
+};
 
 export default function ModifierProgrammePage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
 
-  interface LotForm {
-    numero: string;
-    type: string;
-    surface: string;
-    etage: string;
-    prix: string;
-    nbChambres: string;
-    statut: string;
-    orientation: string;
-  }
-
-  const emptyLot: LotForm = {
-    numero: "",
-    type: "T2",
-    surface: "",
-    etage: "0",
-    prix: "",
-    nbChambres: "1",
-    statut: "DISPONIBLE",
-    orientation: "",
-  };
-
   const [status, setStatus] = useState<"idle" | "loading" | "saving" | "success" | "error">("loading");
   const [lots, setLots] = useState<LotForm[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
+  const [newPhotos, setNewPhotos] = useState<UploadedFile[]>([]);
+  const [existingDocs, setExistingDocs] = useState<ExistingDoc[]>([]);
+  const [newDocs, setNewDocs] = useState<UploadedFile[]>([]);
+  const [newDocTypes, setNewDocTypes] = useState<Record<number, string>>({});
   const [form, setForm] = useState({
     nom: "",
     description: "",
@@ -101,6 +136,22 @@ export default function ModifierProgrammePage() {
             }))
           );
         }
+        if (data.photos && Array.isArray(data.photos)) {
+          setExistingPhotos(
+            [...data.photos].sort((a: ExistingPhoto, b: ExistingPhoto) => a.ordre - b.ordre)
+          );
+        }
+        if (data.documentsProgramme && Array.isArray(data.documentsProgramme)) {
+          setExistingDocs(
+            data.documentsProgramme.map((d: ExistingDoc) => ({
+              id: d.id,
+              url: d.url,
+              nom: d.nom,
+              type: d.type,
+              taille: d.taille || 0,
+            }))
+          );
+        }
         setStatus("idle");
       } catch {
         setStatus("error");
@@ -125,14 +176,41 @@ export default function ModifierProgrammePage() {
     setLots((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function movePhoto(index: number, dir: -1 | 1) {
+    setExistingPhotos((prev) => {
+      const next = [...prev];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return next;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  function removeExistingPhoto(index: number) {
+    setExistingPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeExistingDoc(index: number) {
+    setExistingDocs((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
     try {
+      const allPhotos = [
+        ...existingPhotos.map((p) => ({ url: p.url, nom: p.alt })),
+        ...newPhotos.map((p) => ({ url: p.url, nom: p.nom })),
+      ];
+      const allDocs = [
+        ...existingDocs.map((d) => ({ url: d.url, nom: d.nom, type: d.type, taille: d.taille })),
+        ...newDocs.map((d, i) => ({ url: d.url, nom: d.nom, type: newDocTypes[i] || "PLAQUETTE", taille: d.taille })),
+      ];
+
       const res = await authFetch(`/api/programmes/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, lots }),
+        body: JSON.stringify({ ...form, lots, photos: allPhotos, documents: allDocs }),
       });
       if (res.ok) {
         setStatus("success");
@@ -200,8 +278,8 @@ export default function ModifierProgrammePage() {
               <select value={form.statut} onChange={(e) => update("statut", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                 <option value="EN_COMMERCIALISATION">En commercialisation</option>
-                <option value="BIENTOT">Bientot disponible</option>
-                <option value="LIVRE">Livre</option>
+                <option value="BIENTOT">Bientôt disponible</option>
+                <option value="LIVRE">Livré</option>
               </select>
             </div>
             <div>
@@ -211,10 +289,10 @@ export default function ModifierProgrammePage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Norme energetique</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Norme énergétique</label>
               <select value={form.normeRT} onChange={(e) => update("normeRT", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                <option value="">Non renseigne</option>
+                <option value="">Non renseigné</option>
                 <option value="RE2020">RE2020</option>
                 <option value="RT2012">RT2012</option>
               </select>
@@ -266,22 +344,22 @@ export default function ModifierProgrammePage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Prix & Surfaces</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prix min (euros)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prix min (€)</label>
               <input type="number" value={form.prixMin} onChange={(e) => update("prixMin", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prix max (euros)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Prix max (€)</label>
               <input type="number" value={form.prixMax} onChange={(e) => update("prixMax", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Surface min (m2)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Surface min (m²)</label>
               <input type="number" value={form.surfaceMin} onChange={(e) => update("surfaceMin", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Surface max (m2)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Surface max (m²)</label>
               <input type="number" value={form.surfaceMax} onChange={(e) => update("surfaceMax", e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
             </div>
@@ -313,6 +391,168 @@ export default function ModifierProgrammePage() {
               className="w-4 h-4 text-accent rounded border-gray-300 focus:ring-accent" />
             <span className="text-sm font-medium text-gray-700">Mettre en vedette</span>
           </label>
+        </div>
+
+        {/* Photos */}
+        <div className="bg-white rounded-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Photos ({existingPhotos.length + newPhotos.length})
+          </h2>
+
+          {/* Photos existantes */}
+          {existingPhotos.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+              {existingPhotos.map((photo, index) => (
+                <div key={photo.id} className="relative group rounded-xl overflow-hidden border border-gray-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={photo.alt} className="w-full h-28 object-cover" />
+                  {index === 0 && (
+                    <span className="absolute top-1.5 left-1.5 text-xs font-semibold bg-accent text-white px-2 py-0.5 rounded-full">
+                      Principale
+                    </span>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-black/60 px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" disabled={index === 0}
+                      onClick={() => movePhoto(index, -1)}
+                      className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button type="button"
+                      onClick={() => removeExistingPhoto(index)}
+                      className="p-1 text-red-400 hover:text-red-300">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                    <button type="button" disabled={index === existingPhotos.length - 1}
+                      onClick={() => movePhoto(index, 1)}
+                      className="p-1 text-white hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Nouvelles photos uploadées */}
+          {newPhotos.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+              {newPhotos.map((photo, index) => (
+                <div key={index} className="relative group rounded-xl overflow-hidden border border-green-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.url} alt={photo.nom} className="w-full h-28 object-cover" />
+                  <span className="absolute top-1.5 left-1.5 text-xs font-semibold bg-green-500 text-white px-2 py-0.5 rounded-full">
+                    Nouvelle
+                  </span>
+                  <button type="button"
+                    onClick={() => setNewPhotos((prev) => prev.filter((_, i) => i !== index))}
+                    className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-red-400 hover:text-red-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <FileUpload
+            type="photos"
+            accept="image/*,.heic,.heif"
+            multiple
+            label="Ajouter des photos"
+            onUpload={(files) => setNewPhotos(files)}
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            Les photos existantes ci-dessus seront conservées. La première photo est l&apos;image principale.
+          </p>
+        </div>
+
+        {/* Documents */}
+        <div className="bg-white rounded-xl p-6 border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Documents ({existingDocs.length + newDocs.length})
+          </h2>
+
+          {/* Documents existants */}
+          {existingDocs.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {existingDocs.map((doc, index) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{doc.nom}</p>
+                      <p className="text-xs text-gray-500">
+                        {DOC_TYPES_PROGRAMME.find((t) => t.value === doc.type)?.label || doc.type}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline">Voir</a>
+                    <button type="button" onClick={() => removeExistingDoc(index)}
+                      className="text-red-400 hover:text-red-600 p-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Nouveaux documents uploadés */}
+          {newDocs.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {newDocs.map((doc, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{doc.nom}</p>
+                      <select
+                        value={newDocTypes[index] || "PLAQUETTE"}
+                        onChange={(e) => setNewDocTypes((prev) => ({ ...prev, [index]: e.target.value }))}
+                        className="text-xs border border-gray-300 rounded px-2 py-1 mt-0.5">
+                        {DOC_TYPES_PROGRAMME.map((t) => (
+                          <option key={t.value} value={t.value}>{t.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setNewDocs((prev) => prev.filter((_, i) => i !== index))}
+                    className="text-red-400 hover:text-red-600 p-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <FileUpload
+            type="documents"
+            accept=".pdf,image/*"
+            multiple
+            label="Ajouter des documents"
+            onUpload={(files) => setNewDocs(files)}
+          />
         </div>
 
         {/* Lots */}
@@ -355,7 +595,7 @@ export default function ModifierProgrammePage() {
                       <td className="px-1 py-1"><input type="number" value={lot.nbChambres} onChange={(e) => updateLot(i, "nbChambres", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" /></td>
                       <td className="px-1 py-1">
                         <select value={lot.statut} onChange={(e) => updateLot(i, "statut", e.target.value)} className="px-2 py-1.5 border border-gray-300 rounded text-sm">
-                          {["DISPONIBLE","OPTIONE","RESERVE","VENDU"].map(s => <option key={s} value={s}>{s}</option>)}
+                          {["DISPONIBLE","OPTION","RESERVE","VENDU"].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </td>
                       <td className="px-1 py-1"><input value={lot.orientation} onChange={(e) => updateLot(i, "orientation", e.target.value)} className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm" placeholder="Sud" /></td>
@@ -388,7 +628,7 @@ export default function ModifierProgrammePage() {
         </div>
 
         {status === "error" && (
-          <p className="text-sm text-red-500">Erreur lors de la mise a jour. Verifiez les champs et reessayez.</p>
+          <p className="text-sm text-red-500">Erreur lors de la mise à jour. Vérifiez les champs et réessayez.</p>
         )}
       </form>
     </div>

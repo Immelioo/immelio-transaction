@@ -7,9 +7,10 @@ import ReinviteButton from "@/components/admin/ReinviteButton";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPartenairesPage() {
-  const demandesPartenariat = await prisma.lead.findMany({
-    where: { notes: { startsWith: "Demande de partenariat" }, statut: "NOUVEAU" },
+  const demandesPartenariat = await prisma.dossier.findMany({
+    where: { type: "PARTENARIAT", statut: "NOUVELLE" },
     orderBy: { createdAt: "desc" },
+    include: { contact: true },
   });
 
   const partenaires = await prisma.user.findMany({
@@ -54,21 +55,26 @@ export default async function AdminPartenairesPage() {
             </div>
           </div>
           <div className="divide-y divide-gray-50">
-            {demandesPartenariat.map((lead) => {
+            {demandesPartenariat.map((dossier) => {
               const params = new URLSearchParams({
-                prenom: lead.prenom || "",
-                nom: lead.nom || "",
-                email: lead.email,
-                ...(lead.telephone && { telephone: lead.telephone }),
-                ...(lead.notes && { entreprise: lead.notes.replace(/^Demande de partenariat — /, "").split("\n")[0] }),
+                dossierId: dossier.id,
+                contactId: dossier.contact.id,
+                prenom: dossier.contact.prenom || "",
+                nom: dossier.contact.nom || "",
+                ...(dossier.contact.email && { email: dossier.contact.email }),
+                ...(dossier.contact.telephone && { telephone: dossier.contact.telephone }),
+                ...(dossier.contact.entreprise && { entreprise: dossier.contact.entreprise }),
               });
               return (
-                <div key={lead.id} className="p-4 flex items-center justify-between gap-4">
+                <div key={dossier.id} className="p-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">{lead.prenom} {lead.nom}</p>
-                    <p className="text-xs text-gray-500">{lead.email}{lead.telephone ? ` · ${lead.telephone}` : ""}</p>
-                    {lead.notes && (
-                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{lead.notes}</p>
+                    <p className="font-medium text-gray-900 text-sm">{dossier.contact.prenom} {dossier.contact.nom}</p>
+                    <p className="text-xs text-gray-500">
+                      {dossier.contact.email || "Email non renseigné"}
+                      {dossier.contact.telephone ? ` · ${dossier.contact.telephone}` : ""}
+                    </p>
+                    {dossier.notes && (
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{dossier.notes}</p>
                     )}
                   </div>
                   <Link

@@ -1,172 +1,51 @@
-# Inventaire des API Routes — Immelio Transaction
-**Date** : 2026-07-20  
-**Total** : 37 route handlers
+# API Inventory
 
----
+Date: 2026-07-20
+Status: initial inventory
 
-## Authentification
+| Méthodes | Route | Auth attendue | Notes |
+| --- | --- | --- | --- |
+| PUT | `/api/auth/change-password` | utilisateur connecté | vérifie session |
+| POST | `/api/auth/login` | publique | login |
+| POST | `/api/auth/logout` | publique avec cookie | logout |
+| GET | `/api/auth/me` | utilisateur connecté | retourne session |
+| POST, GET | `/api/auth/setup` | publique via token | onboarding partenaire |
+| GET, POST | `/api/biens` | GET public, POST admin | CRUD biens |
+| GET, PUT, DELETE | `/api/biens/[id]` | GET public/admin, write admin | bien détail |
+| POST | `/api/contact` | publique | lead contact |
+| GET, POST | `/api/contacts` | admin | CRM contacts |
+| PUT, DELETE | `/api/contacts/[id]` | admin | CRM contacts |
+| GET | `/api/cron/reminders` | secret cron | cron secret requis |
+| POST | `/api/demandes` | publique | demande de recherche |
+| PATCH | `/api/demandes/[id]` | admin | traitement demande |
+| POST | `/api/devenir-partenaire` | publique | ancien flux lead partenariat |
+| POST, GET | `/api/documents` | admin/partner selon cas | documents biens |
+| POST, GET | `/api/documents-partenaire` | admin/partner | documents partenaires |
+| GET, PUT, DELETE | `/api/documents-partenaire/[id]` | admin/partner | ownership check |
+| PATCH | `/api/dossiers/[id]` | admin | traitement dossier |
+| GET, POST | `/api/leads` | admin | CRM leads |
+| GET, PATCH, DELETE | `/api/leads/[id]` | admin | lead détail |
+| POST, PATCH | `/api/leads/[id]/activites` | admin | CRM activités |
+| GET, POST, PATCH | `/api/messages` | admin/partner | messagerie interne |
+| GET | `/api/messages/unread-count` | admin/partner | badge |
+| POST, GET | `/api/options` | admin/partner | options lots |
+| PATCH | `/api/options/[id]` | admin/partner | statut option |
+| GET, POST | `/api/partenaires` | admin | gestion partenaires |
+| GET, PUT, DELETE | `/api/partenaires/[id]` | admin | gestion partenaire |
+| POST | `/api/partenaires/[id]/reinvite` | admin | réinvitation |
+| POST | `/api/partenariat` | publique | nouveau flux demande partenaire |
+| GET, POST | `/api/programmes` | GET public/admin/partner, POST admin | programmes |
+| GET, PUT, DELETE | `/api/programmes/[id]` | GET public/admin, write admin | programme détail |
+| GET | `/api/programmes/[id]/documents/[documentId]` | public or auth depending document | proxy download |
+| GET, PUT | `/api/site-settings` | admin | CMS site |
+| GET, POST | `/api/temoignages` | GET public, POST admin | contenus |
+| PUT, DELETE | `/api/temoignages/[id]` | admin | contenus |
+| POST | `/api/upload` | admin/partner | upload Cloudinary |
+| POST | `/api/visites` | publique | demande de visite |
+| PATCH | `/api/visites/[id]` | admin | statut visite |
 
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| POST | `/api/auth/login` | Non | Connexion admin/partenaire — JWT en cookie HttpOnly |
-| POST | `/api/auth/logout` | Non | Supprime le cookie auth-token |
-| GET | `/api/auth/me` | ADMIN\|PARTENAIRE | Retourne l'utilisateur courant |
-| POST | `/api/auth/setup` | Non (token invite) | Activation compte partenaire avec inviteToken |
-| POST | `/api/auth/change-password` | ADMIN\|PARTENAIRE | Changement de mot de passe |
+## Observations
 
----
-
-## Biens immobiliers
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/biens` | Non | Liste des biens (filtrée pour public : pas VENDU, pas commissionPartenaire) |
-| POST | `/api/biens` | ADMIN | Créer un bien |
-| GET | `/api/biens/[id]` | Non | Détail bien (filtré si non-admin) |
-| PUT | `/api/biens/[id]` | ADMIN | Modifier un bien (avec gestion photos) |
-| DELETE | `/api/biens/[id]` | ADMIN | Supprimer un bien |
-
----
-
-## Programmes neufs
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/programmes` | Non | Liste des programmes |
-| POST | `/api/programmes` | ADMIN | Créer un programme |
-| GET | `/api/programmes/[id]` | Non | Détail programme |
-| PUT | `/api/programmes/[id]` | ADMIN | Modifier un programme |
-| DELETE | `/api/programmes/[id]` | ADMIN | Supprimer un programme |
-| GET | `/api/programmes/[id]/documents/[documentId]` | ADMIN\|PARTENAIRE | Télécharger document programme |
-
----
-
-## Contacts / CRM
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| POST | `/api/contact` | Non | Formulaire contact public |
-| GET | `/api/contacts` | ADMIN | Liste contacts CRM |
-| POST | `/api/contacts` | ADMIN | Créer un contact |
-| GET | `/api/contacts/[id]` | ADMIN | Détail contact |
-| PUT | `/api/contacts/[id]` | ADMIN | Modifier contact |
-| DELETE | `/api/contacts/[id]` | ADMIN | Supprimer contact |
-
----
-
-## Demandes de recherche
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| POST | `/api/demandes` | Non | Soumettre une demande de recherche publique |
-| GET | `/api/demandes` | ADMIN (à vérifier) | Lister les demandes |
-| GET | `/api/demandes/[id]` | ADMIN | Détail demande |
-| PATCH | `/api/demandes/[id]` | ADMIN | Modifier statut demande |
-| DELETE | `/api/demandes/[id]` | ADMIN | Supprimer demande |
-
----
-
-## Partenaires
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/partenaires` | ADMIN | Liste des partenaires |
-| POST | `/api/partenaires` | ADMIN | Créer un compte partenaire + envoyer invitation |
-| GET | `/api/partenaires/[id]` | ADMIN | Détail partenaire |
-| PUT | `/api/partenaires/[id]` | ADMIN | Modifier partenaire (partenaireUpdateSchema) |
-| DELETE | `/api/partenaires/[id]` | ADMIN | Supprimer partenaire |
-| POST | `/api/partenaires/[id]/reinvite` | ADMIN | Renvoyer invitation par email |
-| POST | `/api/partenariat` | Non | ⚠️ Ancien endpoint (deprecated) |
-| POST | `/api/devenir-partenaire` | Non | Nouveau formulaire demande partenariat |
-
----
-
-## Documents
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/documents-partenaire` | ADMIN\|PARTENAIRE | Documents du partenaire connecté (filtrés par rôle) |
-| POST | `/api/documents-partenaire` | ADMIN\|PARTENAIRE | Enregistrer un document partenaire |
-| GET | `/api/documents-partenaire/[id]` | ADMIN\|PARTENAIRE | Télécharger document (proxy Cloudinary) |
-| PUT | `/api/documents-partenaire/[id]` | ADMIN\|PARTENAIRE | Modifier métadonnées |
-| DELETE | `/api/documents-partenaire/[id]` | ADMIN\|PARTENAIRE | Supprimer document |
-| POST | `/api/upload` | ADMIN\|PARTENAIRE | Upload fichier vers Cloudinary |
-| GET | `/api/documents` | ADMIN | Gestion documents biens (admin) |
-| POST | `/api/documents` | ADMIN | Créer document bien |
-
----
-
-## Leads
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/leads` | ADMIN | Liste des leads |
-| POST | `/api/leads` | ADMIN | Créer un lead |
-| GET | `/api/leads/[id]` | ADMIN | Détail lead |
-| PUT | `/api/leads/[id]` | ADMIN | Modifier lead |
-| DELETE | `/api/leads/[id]` | ADMIN | Supprimer lead |
-| POST | `/api/leads/[id]/activites` | ADMIN | Ajouter activité au lead |
-
----
-
-## Messagerie
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/messages` | ADMIN\|PARTENAIRE | Messages (filtrés par rôle) |
-| POST | `/api/messages` | ADMIN\|PARTENAIRE | Envoyer un message |
-| GET | `/api/messages/unread-count` | ADMIN\|PARTENAIRE | Nombre de messages non lus |
-
----
-
-## Visites
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/visites` | ADMIN | Liste des visites |
-| POST | `/api/visites` | Non | Demander une visite (formulaire public) |
-| PUT | `/api/visites/[id]` | ADMIN | Modifier visite |
-| DELETE | `/api/visites/[id]` | ADMIN | Supprimer visite |
-
----
-
-## Dossiers
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| PATCH | `/api/dossiers/[id]` | ADMIN | Modifier dossier (statut, notes) |
-
----
-
-## Paramètres & Contenu
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/site-settings` | Non | Paramètres publics du site |
-| PUT | `/api/site-settings` | ADMIN | Modifier paramètres site |
-| GET | `/api/temoignages` | Non | Liste des témoignages |
-| POST | `/api/temoignages` | ADMIN | Créer témoignage |
-| PUT | `/api/temoignages/[id]` | ADMIN | Modifier témoignage |
-| DELETE | `/api/temoignages/[id]` | ADMIN | Supprimer témoignage |
-| GET | `/api/options` | ADMIN | Options/paramètres admin |
-| POST | `/api/options` | ADMIN | Créer option |
-| PUT | `/api/options/[id]` | ADMIN | Modifier option |
-| DELETE | `/api/options/[id]` | ADMIN | Supprimer option |
-
----
-
-## Tâches planifiées
-
-| Méthode | Route | Auth requise | Description |
-|---------|-------|-------------|-------------|
-| GET | `/api/cron/reminders` | Cron-Secret header | Envoi des rappels automatiques |
-
----
-
-## Points d'attention
-
-1. **`/api/partenariat`** — endpoint legacy à désactiver (voir SECURITY_AUDIT F-SEC-05)
-2. **`GET /api/demandes`** — vérifier si l'auth est bien requise (éviter exposition données clients)
-3. **`/api/programmes/[id]/documents/[documentId]`** — vérifier le contrôle d'accès sur chaque document
-4. **`/api/visites` POST** — public, rate limité à 3/min par IP (correct)
-5. **`/api/cron/reminders`** — doit vérifier `process.env.CRON_SECRET` dans le header
+- Public lead flows currently rely on `/api/contact`, `/api/demandes`, `/api/devenir-partenaire` and `/api/partenariat`.
+- `GET /api/cron/reminders` is not auth-protected but is guarded by `CRON_SECRET`.
+- Mutating APIs also pass through origin checks in `src/proxy.ts`.

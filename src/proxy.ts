@@ -123,9 +123,13 @@ export async function proxy(req: NextRequest) {
     );
   }
   // Content-Security-Policy
+  // unsafe-eval requis par React en mode développement (source maps, HMR) — retiré en prod
+  const scriptSrc = process.env.NODE_ENV === "production"
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",  // unsafe-inline requis par Next.js (hydration)
+    scriptSrc,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",   // blob: pour les previews d'image locales
     "font-src 'self' data:",

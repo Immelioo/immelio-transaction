@@ -168,6 +168,7 @@ export const documentProgrammeSchema = z.object({
 });
 
 export const lotSchema = z.object({
+  id: z.string().cuid().optional(),
   numero: sanitizedString(50),
   type: z.enum(["STUDIO", "T1", "T2", "T3", "T4", "T5"]),
   surface: z.coerce.number().positive().max(10_000),

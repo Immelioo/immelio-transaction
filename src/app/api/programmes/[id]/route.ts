@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth, unauthorizedResponse } from "@/lib/auth";
 import { programmeSchema, lotSchema, photoProgrammeSchema, documentProgrammeSchema } from "@/lib/schemas";
+import { planProgrammeLotChanges } from "@/lib/programmeLots";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
 
@@ -109,54 +110,99 @@ export async function PUT(
       documentsParsed = result.data;
     }
 
-    const programme = await prisma.programme.update({
-      where: { id },
-      data: parsed.data,
+    const existingLots = lotsParsed
+      ? await prisma.lot.findMany({
+          where: { programmeId: id },
+          include: { options: { select: { id: true } } },
+        })
+      : [];
+
+    const lotPlan = lotsParsed
+      ? planProgrammeLotChanges(
+          existingLots.map((lot) => ({
+            id: lot.id,
+            optionCount: lot.options.length,
+          })),
+          lotsParsed,
+        )
+      : null;
+
+    if (lotPlan && lotPlan.blocked.length > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Impossible de supprimer un lot qui porte déjà des options actives. Retirez ou clôturez d'abord les options liées.",
+          blockedLotIds: lotPlan.blocked.map((lot) => lot.id),
+        },
+        { status: 409 },
+      );
+    }
+
+    const programme = await prisma.$transaction(async (tx) => {
+      const updatedProgramme = await tx.programme.update({
+        where: { id },
+        data: parsed.data,
+      });
+
+      if (lotPlan) {
+        for (const lot of lotPlan.toUpdate) {
+          const { id: lotId, ...lotData } = lot;
+          await tx.lot.update({
+            where: { id: lotId },
+            data: lotData,
+          });
+        }
+
+        if (lotPlan.toDelete.length > 0) {
+          await tx.lot.deleteMany({
+            where: {
+              programmeId: id,
+              id: { in: lotPlan.toDelete },
+            },
+          });
+        }
+
+        for (const lot of lotPlan.toCreate) {
+          await tx.lot.create({
+            data: { ...lot, programmeId: id },
+          });
+        }
+      }
+
+      if (photosParsed) {
+        await tx.photoProgramme.deleteMany({ where: { programmeId: id } });
+        for (let i = 0; i < photosParsed.length; i++) {
+          const photo = photosParsed[i];
+          await tx.photoProgramme.create({
+            data: {
+              url: photo.url,
+              alt: photo.nom || updatedProgramme.nom,
+              ordre: i,
+              type: "PHOTO",
+              programmeId: id,
+            },
+          });
+        }
+      }
+
+      if (documentsParsed) {
+        await tx.documentProgramme.deleteMany({ where: { programmeId: id } });
+        for (const doc of documentsParsed) {
+          await tx.documentProgramme.create({
+            data: {
+              url: doc.url,
+              nom: doc.nom,
+              type: doc.type,
+              taille: doc.taille,
+              public: doc.public,
+              programmeId: id,
+            },
+          });
+        }
+      }
+
+      return updatedProgramme;
     });
-
-    // Mettre à jour les lots si fournis
-    if (lotsParsed) {
-      await prisma.lot.deleteMany({ where: { programmeId: id } });
-      for (const lot of lotsParsed) {
-        await prisma.lot.create({
-          data: { ...lot, programmeId: id },
-        });
-      }
-    }
-
-    // Mettre à jour les photos si fournies
-    if (photosParsed) {
-      await prisma.photoProgramme.deleteMany({ where: { programmeId: id } });
-      for (let i = 0; i < photosParsed.length; i++) {
-        const photo = photosParsed[i];
-        await prisma.photoProgramme.create({
-          data: {
-            url: photo.url,
-            alt: photo.nom || programme.nom,
-            ordre: i,
-            type: "PHOTO",
-            programmeId: id,
-          },
-        });
-      }
-    }
-
-    // Mettre à jour les documents si fournis
-    if (documentsParsed) {
-      await prisma.documentProgramme.deleteMany({ where: { programmeId: id } });
-      for (const doc of documentsParsed) {
-        await prisma.documentProgramme.create({
-          data: {
-            url: doc.url,
-            nom: doc.nom,
-            type: doc.type,
-            taille: doc.taille,
-            public: doc.public,
-            programmeId: id,
-          },
-        });
-      }
-    }
 
     return NextResponse.json(programme);
   } catch (error) {

@@ -15,6 +15,7 @@ const DOC_TYPES_PROGRAMME = [
 ];
 
 interface LotForm {
+  id?: string;
   numero: string;
   type: string;
   surface: string;
@@ -72,6 +73,7 @@ export default function ModifierProgrammePage() {
   const id = params.id as string;
 
   const [status, setStatus] = useState<"idle" | "loading" | "saving" | "success" | "error">("loading");
+  const [errorMessage, setErrorMessage] = useState("");
   const [lots, setLots] = useState<LotForm[]>([]);
   const [photos, setPhotos] = useState<MediaPhoto[]>([]);
   const [documents, setDocuments] = useState<MediaDocument[]>([]);
@@ -133,6 +135,7 @@ export default function ModifierProgrammePage() {
         setLots(
           Array.isArray(data.lots)
             ? data.lots.map((lot: Record<string, unknown>) => ({
+                id: typeof lot.id === "string" ? lot.id : undefined,
                 numero: (lot.numero as string) || "",
                 type: (lot.type as string) || "T2",
                 surface: lot.surface?.toString() || "",
@@ -175,7 +178,9 @@ export default function ModifierProgrammePage() {
         );
 
         setStatus("idle");
+        setErrorMessage("");
       } catch {
+        setErrorMessage("Impossible de charger ce programme.");
         setStatus("error");
       }
     }
@@ -258,6 +263,7 @@ export default function ModifierProgrammePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
+    setErrorMessage("");
 
     try {
       const res = await authFetch(`/api/programmes/${id}`, {
@@ -277,12 +283,26 @@ export default function ModifierProgrammePage() {
       });
 
       if (!res.ok) {
-        throw new Error("Échec de la mise à jour");
+        let message = "Échec de la mise à jour";
+        try {
+          const data = await res.json();
+          if (data?.error) {
+            message = data.error;
+          }
+        } catch {
+          // ignore parse error
+        }
+        throw new Error(message);
       }
 
       setStatus("success");
       router.push("/admin/programmes");
-    } catch {
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Erreur lors de l'enregistrement. Vérifiez les champs, les documents et les photos.",
+      );
       setStatus("error");
     }
   }
@@ -568,7 +588,7 @@ export default function ModifierProgrammePage() {
 
           <div className="space-y-4">
             {lots.map((lot, i) => (
-              <div key={`${lot.numero}-${i}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div key={lot.id || `${lot.numero}-${i}`} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-gray-900">Lot #{i + 1}</h3>
                   <button type="button" onClick={() => removeLot(i)}
@@ -674,7 +694,7 @@ export default function ModifierProgrammePage() {
 
         {status === "error" && (
           <p className="text-sm text-red-500">
-            Erreur lors de l&apos;enregistrement. Vérifiez les champs, les documents et les photos.
+            {errorMessage || "Erreur lors de l'enregistrement. Vérifiez les champs, les documents et les photos."}
           </p>
         )}
       </form>

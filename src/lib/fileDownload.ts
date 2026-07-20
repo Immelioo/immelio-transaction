@@ -13,13 +13,34 @@ const LOCAL_CONTENT_TYPES: Record<string, string> = {
   ".heif": "image/heif",
 };
 
+// Domaines autorisés pour le proxy de téléchargement (SSRF protection)
+const ALLOWED_PROXY_HOSTNAMES = new Set(["res.cloudinary.com"]);
+
+function isAllowedRemoteUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      (parsed.protocol === "https:" || parsed.protocol === "http:") &&
+      ALLOWED_PROXY_HOSTNAMES.has(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function buildDisposition(filename: string) {
   return `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }
 
-function getLocalFilePath(sourceUrl: string) {
-  const normalized = path.normalize(sourceUrl).replace(/^(\.\.(\/|\\|$))+/, "");
-  return path.join(process.cwd(), "public", normalized);
+function getLocalFilePath(sourceUrl: string): string {
+  const publicDir = path.join(process.cwd(), "public");
+  // Utiliser path.resolve pour résoudre le chemin réel, puis vérifier le préfixe
+  const resolved = path.resolve(publicDir, sourceUrl.replace(/^\//, ""));
+  const expectedPrefix = publicDir + path.sep;
+  if (!resolved.startsWith(expectedPrefix) && resolved !== publicDir) {
+    throw new Error("Path traversal détecté");
+  }
+  return resolved;
 }
 
 async function downloadLocalFile(sourceUrl: string, filename: string) {
@@ -59,6 +80,11 @@ export async function proxyFileDownload(
   const absoluteUrl = sourceUrl.startsWith("/")
     ? new URL(sourceUrl, request.nextUrl.origin).toString()
     : sourceUrl;
+
+  if (!isAllowedRemoteUrl(absoluteUrl)) {
+    logger.warn("Proxy téléchargement refusé — URL non autorisée", { sourceUrl });
+    return NextResponse.json({ error: "URL non autorisée" }, { status: 403 });
+  }
 
   try {
     const upstream = await fetch(absoluteUrl, { cache: "no-store" });

@@ -10,6 +10,7 @@ Date: 2026-07-20
 - Upstash Redis not configured
 - Sensitive documents still rely on public source URLs
 - Partnership flow needs end-to-end validation on a non-production test database
+- Monitoring / alerting stack not yet proven in production
 
 ## Important but not yet closed
 
@@ -17,3 +18,4 @@ Date: 2026-07-20
 - Full permission matrix by resource and role
 - Full responsive and visual regression sweep
 - Admin auth hardening beyond basic role gate
+- Full concurrent-edit / stale-write validation on staging

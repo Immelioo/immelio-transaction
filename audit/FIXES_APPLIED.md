@@ -19,3 +19,9 @@ Date: 2026-07-20
 5. Added regression test: `tests/programmeLots.test.ts`
 6. Unified partnership-request persistence for `/devenir-partenaire` and `/pro/login`
 7. Switched admin partnership alert block to dossier-backed requests instead of parsing raw leads
+8. Added server-side session readers for admin/pro login pages
+9. Removed double redirect `/admin` -> `/admin/dashboard` -> `/admin/login`
+10. Added RC smoke tests for estimation and protected redirects
+11. Removed unused `next-auth` dependency from the project
+12. Upgraded `nodemailer` to `9.0.3`
+13. Declared `jose` explicitly to match Edge proxy usage

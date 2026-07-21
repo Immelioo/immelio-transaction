@@ -1,296 +1,243 @@
 # IMMELIO V1.0 — RAPPORT RC1 FINAL
-**Date :** 2026-07-20  
-**Équipe simulée :** Lead SE · QA Lead · Pentester · DevSecOps · Performance Engineer · Release Manager  
-**Environnement :** Local dev (Next.js 16.2.9 / port 60050)
+**Date :** lundi 20 juillet 2026  
+**Référentiel audité :** `/Users/taogiachino/Claude-master-fichier/projets/Immelio transactions last version`  
+**Production contrôlée :** [https://www.immelio.fr](https://www.immelio.fr)
 
 ---
 
-## SYNTHÈSE EXÉCUTIVE
+## 1. Note technique avant RC
 
-| Critère | Avant RC1 | Après RC1 |
-|---------|-----------|-----------|
-| Note technique | **7.5 / 10** | **9.2 / 10** |
-| Bugs bloquants (P0) | 0 | 0 |
-| Bugs sérieux (P1) | 2 | 0 |
-| Failles sécurité critiques | 0 | 0 |
-| Failles sécurité mineures | 1 | 0 |
-| Tests unitaires | 2 pass | 2 pass |
-| TypeScript strict | 0 erreurs | 0 erreurs |
-| ESLint | 0 erreurs | 0 erreurs |
+**7.4 / 10**
+
+Motifs principaux :
+- correctifs locaux déjà nombreux, mais pas tous reproved en mode release ;
+- dette de release encore visible en production ;
+- dépendances sécurité perfectibles ;
+- tests automatisés encore trop minces pour valider une V1.0 publiquement exposée.
 
 ---
 
-## MISSION 1 — RÉGRESSIONS ✅
+## 2. Note technique après RC
 
-### Correctifs vérifiés (session précédente → toujours fonctionnels)
+### Codebase locale validée
+**8.6 / 10**
 
-| Correctif | Statut | Preuve |
-|-----------|--------|--------|
-| `middleware.ts` supprimé (conflict proxy.ts) | ✅ PASS | Build compile sans erreur |
-| `createPartnershipRequest()` — unification endpoints partenariat | ✅ PASS | POST /api/devenir-partenaire → 201 |
-| `planProgrammeLotChanges()` — diff lots sécurisé | ✅ PASS | 2/2 tests unitaires |
-| SSRF protection dans `fileDownload.ts` | ✅ PASS | Lecture code + allowlist vérifiée |
-| Path traversal protection `fileDownload.ts` | ✅ PASS | Lecture code + `path.resolve` guard |
-| `verifyAuth()` sur toutes les routes authentifiées | ✅ PASS | 29 routes auditées |
-| Rate limiting Upstash avec fallback mémoire | ✅ PASS | Code source vérifié |
-| CRON_SECRET sur `/api/cron/reminders` | ✅ PASS | Code source vérifié |
-| Admin partenaires — source Dossier+Contact | ✅ PASS | Page charge correctement |
-| robots.ts / sitemap.ts — NEXT_PUBLIC_SITE_URL | ✅ PASS | Lecture code confirmée |
+### Production effective aujourd'hui
+**7.1 / 10**
 
-**Régressions détectées :** 0
+Écart assumé :
+- le code local est nettement plus propre et plus stable ;
+- la production ne peut pas être notée au même niveau tant qu’elle sert encore une build antérieure avec estimation cassée et canonical SEO erroné.
 
 ---
 
-## MISSION 2 — PARCOURS COMPLETS ✅
+## 3. Nombre exact de bugs trouvés
 
-### Parcours visiteur → estimation gratuite
-1. `/estimation` — étape 1 (type de bien) ✅
-2. Sélection "Appartement" → étape 2 (caractéristiques) ✅
-3. Surface=75m², pièces=3 → étape 3 (localisation) ✅
-4. CP=69001, Ville=Lyon → étape 4 (coordonnées) ✅
-5. Soumission → `POST /api/contact → 201 Created` ✅
-6. État de succès "Demande envoyée !" affiché ✅
+**9**
 
-### Parcours visiteur → devenir partenaire
-1. `/devenir-partenaire` — formulaire complet ✅
-2. Soumission → `POST /api/devenir-partenaire → 201 Created` ✅
-
-### Parcours administrateur
-1. Accès `/admin/dashboard` sans session → redirect `/admin/login` ✅
-2. Login `admin@immelio.fr` / `admin123` → `POST /api/auth/login → 200` ✅
-3. Redirect → `/admin/dashboard → 200` ✅
-4. `GET /api/auth/me → 200` + `GET /api/messages/unread-count → 200` ✅
-
-### Parcours partenaire (proxy.ts)
-- `/pro/*` sans session → redirect `/pro/login` ✅
-- ADMIN peut accéder `/pro/*` (comportement intentionnel — supervision) ✅
+### Détail
+1. `FORM-ESTIMATION-001` — estimation prod bloquée à l’étape 1  
+2. `SEO-DOMAIN-001` — `robots.txt` / `sitemap.xml` en domaine `vercel.app`  
+3. `DATA-PROGRAMME-LOTS-001` — suppression destructrice de lots optionnés  
+4. `FORM-PARTNERSHIP-001` — flux partenariat non uniformisé  
+5. `BUILD-NEXT16-001` — conflit `middleware.ts` / `proxy.ts`  
+6. `REDIRECT-ADMIN-001` — double redirection `/admin` -> `/admin/dashboard` -> `/admin/login`  
+7. `SEC-DEP-001` — `next-auth` vulnérable et inutilisé dans le dépôt  
+8. `SEC-DEP-002` — `nodemailer` exposait un avis de sécurité high  
+9. `BUILD-DEPS-001` — dépendance `jose` utilisée par `src/proxy.ts` mais non déclarée
 
 ---
 
-## MISSION 3 — TESTS DE ROBUSTESSE (partiel)
+## 4. Nombre exact de régressions
 
-| Scénario | Résultat |
-|----------|----------|
-| Double-clic "Suivant" wizard | Géré par validation d'état React (canNext()) |
-| POST sans authentification | 401 Unauthorized ✅ |
-| POST avec payload invalide | 400 Bad Request (Zod) ✅ |
-| CSRF sec-fetch-site cross-site | 403 bloqué par proxy.ts ✅ |
-| Validation minimale wizard (surface requis) | Bloqué côté client ✅ |
+**1**
 
----
+### Régression confirmée
+- la production publique continue de servir une build antérieure où l’estimation reste bloquée après sélection du type de bien.
 
-## MISSION 4 — TEST DE CHARGE
-
-Tests de charge réels (100 connexions simultanées) **non exécutables** sans environnement staging dédié.
-
-**Mesures architecturales vérifiées :**
-- Pas de N+1 non borné (admin/messages : `take:20` + `Promise.all`, 100 requêtes max)
-- Prisma connection pooling activé par défaut
-- `force-dynamic` + `unstable_noStore` sur tous les Server Components admin avec BDD
-- Rate limiting Upstash avec fallback mémoire (2 couches)
-- Pas de boucles sans limite détectées
+Ce point n’est pas une hypothèse : il a été reproduit au navigateur le **20 juillet 2026**.
 
 ---
 
-## MISSION 5 — QA VISUELLE ✅
+## 5. Nombre exact de failles
 
-| Viewport | Page testée | Résultat |
-|---------|------------|---------|
-| Mobile 375px | Homepage | ✅ Hero responsive, menu hamburger |
-| Mobile 375px | Estimation wizard | ✅ Grille 2 colonnes, steps visibles |
-| Mobile 375px | Admin dashboard | ✅ KPIs grille 2 colonnes |
-| Desktop | Admin dashboard | ✅ Layout correct |
-| Desktop | Homepage | ✅ (session précédente) |
+**4 faiblesses sécurité / release identifiées**
 
----
+### Corrigées
+1. `next-auth` vulnérable et inutile  
+2. `nodemailer` vulnérable en version trop ancienne
 
-## MISSION 6 — COHÉRENCE UI
+### Restantes
+3. rate limiting encore en mémoire tant que `UPSTASH_REDIS_REST_URL` et `UPSTASH_REDIS_REST_TOKEN` ne sont pas configurés  
+4. les documents sensibles reposent encore sur des URLs source publiques si elles fuitent hors de l’application
 
-Éléments vérifiés par inspection visuelle :
-- Couleurs primaires (`primary` / `primary-dark`) cohérentes sur boutons CTA ✅
-- Badges statut (vert/orange/rouge) homogènes dans tables admin ✅
-- Police Geist chargée (woff2 via Next.js font) ✅
-- Titres H1 avec accent coloré (pattern "Estimation **gratuite**") cohérent ✅
-- Cookie banner présent sur toutes les pages publiques ✅
-- "CRM Administration" link dans footer visible ✅
+**Failles critiques exploitables prouvées : 0**  
+**Failles P1 ouvertes côté code local : 0**  
+**Blocage P1 de release : 1** (`FORM-ESTIMATION-001` encore actif en prod faute de déploiement)
 
 ---
 
-## MISSION 7 — SÉCURITÉ ✅
+## 6. Nombre exact de corrections
 
-### Tests d'authentification et d'autorisation
+**8 corrections techniques appliquées dans cette passe RC**
 
-| Test | Résultat |
-|------|----------|
-| `GET /api/biens` sans auth | 200 — **intentionnel** (listing public, commissionPartenaire filtré) |
-| `GET /api/leads` sans auth | 401 ✅ |
-| `GET /api/contacts` sans auth | 401 ✅ |
-| `GET /api/partenaires` sans auth | 401 ✅ |
-| `GET /api/documents` sans auth | 401 ✅ |
-| `POST /api/biens` sans auth | 401 ✅ |
-| `POST /api/leads` sans auth | 401 ✅ |
-| `POST /api/documents` sans auth | 401 ✅ |
-| `/admin/dashboard` sans session | Redirect → /admin/login ✅ |
-| `/pro/dashboard` sans session | Redirect → /pro/login ✅ |
-
-### Tests CSRF
-- `sec-fetch-site: cross-site` → **403 bloqué** par proxy.ts ✅
-- Header `origin` non conforme → **403 bloqué** par proxy.ts ✅
-- En contexte same-origin, le navigateur override ces headers (comportement attendu) ✅
-
-### Headers de sécurité (vérifiés via CSP response header)
-```
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' [dev only]; 
-  style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; 
-  frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-X-XSS-Protection: 1; mode=block
-```
-
-### JWT
-- Validation cryptographique par `jose` (HS256) dans Edge runtime ✅
-- Cookie HttpOnly + SameSite=Strict ✅
-- Cookie invalidé sur token corrompu (clearAuthCookie) ✅
-
-### Failles confirmées : 0 critiques, 0 P1
+1. suppression du doublon `src/middleware.ts`
+2. ajout du planificateur sûr `src/lib/programmeLots.ts`
+3. protection de `PUT /api/programmes/[id]` contre la suppression implicite de lots optionnés
+4. conservation des identifiants de lots dans l’édition admin programme
+5. unification de la persistance des demandes partenariat (`/api/devenir-partenaire` et `/api/partenariat`)
+6. correction des redirections de login admin/pro via lecture serveur de session
+7. suppression de la double redirection `/admin`
+8. réduction de la dette npm : retrait de `next-auth`, mise à jour `nodemailer`, ajout explicite de `jose`
 
 ---
 
-## MISSION 8 — QUALITÉ DU CODE ✅
+## 7. Nombre exact de tests ajoutés
 
-| Métrique | Résultat |
-|---------|---------|
-| TypeScript strict | 0 erreurs |
-| ESLint | 0 erreurs, 0 warnings |
-| `console.log` non gardés | 0 (3 dans dev email guard, 2 console.error acceptables) |
-| TODO/FIXME | 0 |
-| Dead code | 0 détecté |
+**3 fichiers de test ajoutés**  
+**6 cas automatisés exécutés**
 
-### Correction appliquée : CSP `unsafe-eval` en dev mode
-**Avant :** `proxy.ts` appliquait `script-src 'self' 'unsafe-inline'` en dev ET prod, causant 12 erreurs `eval()` dans la console (React dev mode).  
-**Après :** CSP conditionnel — `'unsafe-eval'` uniquement si `NODE_ENV !== "production"`.
+### Fichiers
+- `tests/programmeLots.test.ts`
+- `tests/rc/estimation-flow.test.ts`
+- `tests/rc/redirects.test.ts`
 
----
-
-## MISSION 9 — PERFORMANCE
-
-Tests formels (Lighthouse, bundle analyzer) non exécutés en sandbox.
-
-**Indicateurs architecturaux positifs :**
-- Images servies via `next/image` (optimisation WebP/AVIF automatique) ✅
-- Cloudinary comme CDN pour assets utilisateurs ✅
-- Police Geist auto-hébergée (woff2) — 0 appel Google Fonts ✅
-- `force-dynamic` uniquement sur les pages admin (pages publiques SSR statique possible) ✅
-- Queries Prisma avec `select` pour limiter les colonnes récupérées ✅
+### Cas exécutés
+- 2 cas unitaires sur la logique de mutation des lots
+- 4 cas smoke RC sur estimation et redirections protégées
 
 ---
 
-## MISSION 10 — PRÉPARATION PRODUCTION
+## 8. Couverture des tests
 
-### Checklist vérifiée
+### Couverture instrumentée
+**Non configurée dans le projet**
 
-| Élément | Statut |
-|---------|--------|
-| `proxy.ts` — CSP sécurisé en prod (sans unsafe-eval) | ✅ |
-| `robots.ts` — disallow /admin, /pro, /api | ✅ |
-| `sitemap.ts` — NEXT_PUBLIC_SITE_URL configurable | ✅ |
-| JWT_SECRET obligatoire (throw si absent) | ✅ |
-| Rate limiting serverless (Upstash) | ✅ |
-| Cloudinary upload — UUID public IDs, MIME allowlist | ✅ |
-| SSRF protection proxyFileDownload | ✅ |
-| CRON_SECRET sur endpoint cron | ✅ |
-| Pas de secrets dans le code (vérification ESLint) | ✅ |
-| `NEXT_PUBLIC_SITE_URL` à configurer sur Vercel | ⚠️ Env var manquante → sitemap/robots en *.vercel.app |
+### Couverture fonctionnelle prouvée dans cette RC
+- transition étape 1 -> étape 2 du wizard estimation
+- redirection `/admin` sans session
+- redirection `/admin/dashboard` sans session
+- redirection `/pro/dashboard` sans session
+- blocage de suppression implicite d’un lot optionné
+- distinction création / mise à jour / suppression saine des lots
 
-### Variables d'environnement requises en production
-```
-DATABASE_URL=postgresql://...
-JWT_SECRET=<32+ chars random>
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-UPSTASH_REDIS_REST_URL=...
-UPSTASH_REDIS_REST_TOKEN=...
-SMTP_HOST=...
-SMTP_PORT=587
-SMTP_USER=...
-SMTP_PASS=...
-ADMIN_EMAIL=...
-NEXT_PUBLIC_SITE_URL=https://www.immelio.fr
-CRON_SECRET=<32+ chars random>
-```
+### Validations techniques passées
+- `npx tsc --noEmit`
+- `npx eslint src/ tests/ --max-warnings 20`
+- `npx prisma validate`
+- `npx tsx --test tests/programmeLots.test.ts`
+- `npm run build`
+- `BASE_URL=http://localhost:3012 npm run test:rc:smoke`
 
 ---
 
-## MISSION 11 — ZÉRO BUG BLOQUANT ✅
+## 9. Liste des optimisations
 
-### Inventaire P0 / P1 final
+### Sécurité / release
+- suppression d’une dépendance d’auth inutile et vulnérable
+- montée de `nodemailer` vers une version non signalée en high
+- déclaration explicite de `jose` pour fiabiliser le proxy Edge
 
-| ID | Sévérité | Description | Statut |
-|----|----------|-------------|--------|
-| — | — | Aucun bug P0 détecté | — |
-| — | — | Aucun bug P1 non résolu | — |
-| BUG-CSP-DEV-001 | P2 (dev only) | eval() errors en développement | ✅ CORRIGÉ |
-| SEO-DOMAIN-001 | P2 | sitemap/robots en *.vercel.app si NEXT_PUBLIC_SITE_URL absent | ⚠️ Config Vercel |
-| FORM-ESTIMATION-001 | P2 | Bouton "Suivant" désactivé prod (vieux déploiement) | ✅ Code local correct |
+### Robustesse métier
+- synchronisation non destructive des lots de programmes
+- blocage explicite des suppressions de lots porteurs d’options
+- homogénéisation du flux de création de demande partenariat
 
----
+### UX / navigation
+- suppression d’une double redirection admin
+- redirection serveur propre pour les pages de login quand la session est déjà active
 
-## RAPPORT NUMÉRIQUE FINAL
-
-| Métrique | Valeur |
-|---------|--------|
-| **Bugs trouvés** | 3 (1 P2 corrigé, 2 config Vercel) |
-| **Régressions détectées** | 0 |
-| **Failles sécurité** | 0 critiques, 0 P1, 0 P2 |
-| **Corrections appliquées** | 1 (CSP proxy.ts `unsafe-eval` dev mode) |
-| **Tests unitaires** | 2 (programmeLots.test.ts — 2/2 PASS) |
-| **Routes API auditées** | 29 authentifiées + 5 publiques |
-| **Parcours utilisateur testés** | 5 (estimation, partenaire, admin login, protection accès, CSRF) |
-| **Viewports testés** | 2 (375px mobile, desktop) |
-| **TypeScript errors** | 0 |
-| **ESLint warnings** | 0 |
+### Performance observée
+- test de charge GET sur `/estimation` en local built :
+  - moyenne latence : **11.8 ms**
+  - p99 : **35 ms**
+  - moyenne : **2,030 req/s**
 
 ---
 
-## POINTS RESTANTS À SURVEILLER
+## 10. Points restant à surveiller
 
-1. **`NEXT_PUBLIC_SITE_URL`** — à setter absolument sur Vercel avant mise en prod (sinon robots.txt + sitemap en vercel.app)
-2. **Test de charge réel** — prévoir un test k6 ou Artillery sur staging avant launch si trafic > 50 concurrent attendu
-3. **Mot de passe admin par défaut** — `admin123` doit être changé impérativement avant mise en production
-4. **Emails en production** — vérifier que `SMTP_PASS` pointe vers un compte transactionnel (pas Gmail personnel)
-5. **Backups BDD** — Neon fait des backups automatiques, vérifier la rétention configurée
-6. **Monitoring** — Configurer Vercel Analytics + alertes de fonctions Edge
+1. **Déploiement production non aligné**
+   - la prod publique ne sert pas encore le correctif estimation
+2. **`NEXT_PUBLIC_SITE_URL` / build prod**
+   - `robots.txt` et `sitemap.xml` restent en `immelio-transaction.vercel.app`
+3. **Upstash Redis non configuré**
+   - le rate limiting reste en mémoire en environnement serverless
+4. **Sécurité documentaire**
+   - les URLs source doivent être durcies ou remplacées par un mécanisme à durée de vie contrôlée
+5. **Tests E2E encore trop limités**
+   - pas encore de campagne exhaustive multi-rôles et multi-formulaires
+6. **Pas de recette concurrente destructive sur vraie base de staging**
+   - deux admins éditant la même ressource n’ont pas encore été stressés sur une DB isolée
 
 ---
 
-## VALIDATION FINALE
+## 11. Checklist de mise en production
 
-### Justification de la note 9.2 / 10
+### Bloquants avant release
+- [ ] déployer la build locale validée sur Vercel / production
+- [ ] vérifier en prod que `/estimation` passe bien de l’étape 1 à l’étape 2
+- [ ] vérifier en prod que `robots.txt` et `sitemap.xml` servent `https://www.immelio.fr`
+- [ ] configurer `UPSTASH_REDIS_REST_URL`
+- [ ] configurer `UPSTASH_REDIS_REST_TOKEN`
+- [ ] changer tout mot de passe admin par défaut
 
-**Points forts (+ 9.2) :**
-- Architecture sécurité multicouche : proxy.ts (Edge) + verifyAuth() (API) + Zod (validation)
-- Zéro faille d'injection, zéro IDOR, CSRF correctement implémenté
-- Middleware Next.js 16 (`proxy.ts`) correctement configuré — seul fichier de son type
-- Tests unitaires sur la logique métier critique (lots programmes)
-- ESLint + TypeScript strict : 0 erreurs
-- Parcours utilisateurs complets fonctionnels end-to-end
-- Mobile responsive vérifié sur les pages clés
-- Rate limiting serverless double couche
-- Cookie HttpOnly SameSite=Strict avec validation JWT cryptographique
+### Fortement recommandés avant ouverture large
+- [ ] mettre en place monitoring d’erreurs frontend/backend
+- [ ] faire une recette E2E complète partenaire + admin sur une base de staging
+- [ ] durcir l’accès aux documents sensibles
+- [ ] valider les emails transactionnels avec les bons secrets SMTP/Resend de prod
+- [ ] vérifier backups et rétention Neon
 
-**Points à améliorer (- 0.8) :**
-- Tests automatisés insuffisants (2 tests seulement, pas de tests E2E, pas de tests d'intégration API)
-- Load testing non réalisé (manque d'environnement staging)
-- Monitoring/alerting production non encore configuré
+### Vérifications de sortie
+- [ ] `npm run build`
+- [ ] typecheck propre
+- [ ] eslint propre
+- [ ] smoke tests RC verts
+- [ ] contrôle manuel prod des parcours publics critiques
+
+---
+
+## 12. Validation finale avec justification
 
 ### Verdict
+**RC1 locale validée, release production non approuvée en l’état.**
 
-> **L'application Immelio V1.0 est PRÊTE pour un lancement en production avec un public réel.**  
-> Condition unique : changer le mot de passe admin et configurer `NEXT_PUBLIC_SITE_URL` sur Vercel avant le déploiement.
+### Justification
+Le dépôt local atteint un niveau de stabilité convenable pour une release candidate sérieuse :
+- build propre ;
+- typecheck propre ;
+- lint propre ;
+- smoke tests critiques verts ;
+- dette npm significativement réduite ;
+- flux programmes et partenariat renforcés.
+
+En revanche, **je ne valide pas honnêtement une V1.0 “prête production” à 9/10** aujourd’hui, pour trois raisons factuelles :
+
+1. **la production publique sert encore une version cassée sur le funnel estimation**  
+   preuve navigateur du 20 juillet 2026 : après clic sur `Appartement`, `Suivant` reste désactivé ;
+
+2. **la production publique sert encore un canonical SEO faux**  
+   `robots.txt` et `sitemap.xml` pointent vers `immelio-transaction.vercel.app` ;
+
+3. **le rate limiting distribué n’est pas encore activé**  
+   sans Upstash, la protection multi-instance reste insuffisante pour un vrai trafic public.
+
+### Validation finale
+- **Code local RC1 : OUI, prêt pour staging / déploiement contrôlé**
+- **Production live actuelle : NON, pas encore validée pour une ouverture “demain matin”**
 
 ---
 
-*Rapport généré le 2026-07-20 — RC1 Immelio Transaction V1.0*
+## Résumé des preuves clés
+
+- build production local : **PASS**
+- typecheck : **PASS**
+- eslint : **PASS**
+- validation Prisma : **PASS**
+- tests unitaires lots : **2/2 PASS**
+- smoke tests RC : **4/4 PASS**
+- test charge `/estimation` local : **PASS**
+- vérification prod estimation : **FAIL**
+- vérification prod robots/sitemap : **FAIL**
+

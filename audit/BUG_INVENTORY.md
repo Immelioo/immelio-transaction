@@ -436,3 +436,244 @@ détecté
 
 ### Preuves
 - revue de code des routes upload et download
+
+## ANOMALIE REDIRECT-ADMIN-001
+
+### Intitulé
+`/admin` effectuait une double redirection inutile avant d'afficher la page de connexion.
+
+### Catégorie
+redirection
+
+### Environnement
+- local
+- desktop
+- utilisateur non connecté
+
+### URL ou route concernée
+`/admin`
+
+### Préconditions
+Être non authentifié.
+
+### Étapes de reproduction
+1. Ouvrir `/admin`
+2. Observer la chaîne de redirection HTTP
+
+### Résultat actuel
+Avant correctif, la chaîne était :
+- `/admin` -> `/admin/dashboard`
+- `/admin/dashboard` -> `/admin/login`
+
+### Résultat attendu
+`/admin` doit rediriger directement vers `/admin/login` sans détour.
+
+### Gravité
+P2
+
+### Impact
+- utilisateur
+- performance
+- image
+
+### Cause technique identifiée
+Une règle `redirects()` dans `next.config.ts` forçait `/admin` vers `/admin/dashboard`, alors que le proxy serveur redirigeait ensuite logiquement vers `/admin/login`.
+
+### Correctif recommandé
+Supprimer la redirection de configuration et laisser la logique d'accès faire autorité.
+
+### Fichiers concernés
+- `next.config.ts`
+- `src/app/admin/page.tsx`
+- `src/proxy.ts`
+
+### Correctif appliqué
+Oui. La règle `redirects()` a été retirée.
+
+### Test de non-régression
+`tests/rc/redirects.test.ts`
+
+### Statut
+testé
+
+### Preuves
+- smoke test RC vert le 2026-07-20
+
+## ANOMALIE SEC-DEP-001
+
+### Intitulé
+Le dépôt embarquait `next-auth` vulnérable alors que la librairie n'était pas utilisée.
+
+### Catégorie
+sécurité
+
+### Environnement
+- local
+- audit dépendances
+
+### URL ou route concernée
+N/A
+
+### Préconditions
+Exécuter `npm audit --json` et rechercher l'usage de `next-auth`.
+
+### Étapes de reproduction
+1. Lancer `npm audit --json`
+2. Rechercher `next-auth` dans `src/`, `tests/`, `scripts/`, `prisma/`
+
+### Résultat actuel
+`next-auth` remontait comme dépendance vulnérable directe alors qu'aucun usage réel n'existait dans le dépôt.
+
+### Résultat attendu
+Une dépendance d'auth vulnérable et inutilisée ne doit pas rester installée.
+
+### Gravité
+P2
+
+### Impact
+- sécurité
+- maintenance
+
+### Cause technique identifiée
+Dette de dépendance laissée après évolution vers une auth custom JWT/cookie.
+
+### Correctif recommandé
+Retirer `next-auth` du projet et regénérer la lockfile.
+
+### Fichiers concernés
+- `package.json`
+- `package-lock.json`
+
+### Correctif appliqué
+Oui. `next-auth` a été retiré.
+
+### Test de non-régression
+- `npm install`
+- `npm audit --json`
+- `npx tsc --noEmit`
+
+### Statut
+testé
+
+### Preuves
+- `rg -n "next-auth|NextAuth|@auth/core"` ne renvoie plus d'usage applicatif
+- `npm ls next-auth` vide le 2026-07-20
+
+## ANOMALIE SEC-DEP-002
+
+### Intitulé
+`nodemailer` était en version vulnérable au regard de `npm audit`.
+
+### Catégorie
+sécurité
+
+### Environnement
+- local
+- audit dépendances
+
+### URL ou route concernée
+N/A
+
+### Préconditions
+Lancer `npm audit --json`.
+
+### Étapes de reproduction
+1. Exécuter `npm audit --json`
+2. Observer les advisories sur `nodemailer`
+
+### Résultat actuel
+`nodemailer` remontait avec un advisory `high` tant que le projet restait sur une version 7.x.
+
+### Résultat attendu
+Le provider SMTP du projet doit être maintenu sur une version non signalée en high.
+
+### Gravité
+P1
+
+### Impact
+- sécurité
+- maintenance
+
+### Cause technique identifiée
+Version historique trop ancienne de `nodemailer`.
+
+### Correctif recommandé
+Mettre `nodemailer` à niveau et rerun toute la chaîne de validation.
+
+### Fichiers concernés
+- `package.json`
+- `package-lock.json`
+
+### Correctif appliqué
+Oui. `nodemailer` est passé en `9.0.3`.
+
+### Test de non-régression
+- `npm audit --json`
+- `npm run build`
+- `npx tsc --noEmit`
+
+### Statut
+testé
+
+### Preuves
+- plus aucun advisory `high` dans `npm audit` le 2026-07-20
+
+## ANOMALIE BUILD-DEPS-001
+
+### Intitulé
+Le proxy Edge utilisait `jose` sans que la dépendance soit déclarée explicitement.
+
+### Catégorie
+erreur serveur
+
+### Environnement
+- local
+- typecheck
+
+### URL ou route concernée
+`src/proxy.ts`
+
+### Préconditions
+Lancer `npx tsc --noEmit`.
+
+### Étapes de reproduction
+1. Exécuter `npx tsc --noEmit`
+2. Observer l'erreur sur le module `jose`
+
+### Résultat actuel
+Le typecheck cassait après nettoyage npm car `jose` n'était pas déclaré dans `package.json`.
+
+### Résultat attendu
+Toute dépendance importée par le proxy Edge doit être explicitement déclarée.
+
+### Gravité
+P1
+
+### Impact
+- build
+- déploiement
+- maintenance
+
+### Cause technique identifiée
+Incohérence entre le code du proxy et l'arbre de dépendances déclaré.
+
+### Correctif recommandé
+Ajouter `jose` explicitement aux dépendances du projet.
+
+### Fichiers concernés
+- `package.json`
+- `package-lock.json`
+- `src/proxy.ts`
+
+### Correctif appliqué
+Oui. `jose` est maintenant déclaré explicitement.
+
+### Test de non-régression
+- `npx tsc --noEmit`
+- `npm run build`
+
+### Statut
+testé
+
+### Preuves
+- typecheck vert le 2026-07-20

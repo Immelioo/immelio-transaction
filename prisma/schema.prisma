@@ -30,6 +30,8 @@ model User {
   messagesRecus       Message[]            @relation("MessageDestinataire")
   messagesEnvoyes     Message[]            @relation("MessageExpéditeur")
   optionsLots         OptionLot[]
+
+  @@index([role])
 }
 
 model Bien {
@@ -78,6 +80,10 @@ model Bien {
   demandesVisite       DemandeVisite[]
   documents            Document[]
   photos               Photo[]
+
+  @@index([statut])
+  @@index([enVedette])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Photo {
@@ -145,6 +151,10 @@ model Message {
   createdAt      DateTime @default(now())
   destinataire   User     @relation("MessageDestinataire", fields: [destinataireId], references: [id])
   expediteur     User     @relation("MessageExpéditeur", fields: [expediteurId], references: [id])
+
+  @@index([destinataireId, lu])
+  @@index([expediteurId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Programme {
@@ -197,6 +207,8 @@ model Lot {
   programmeId String
   programme   Programme   @relation(fields: [programmeId], references: [id], onDelete: Cascade)
   options     OptionLot[]
+
+  @@index([programmeId, statut])
 }
 
 model OptionLot {
@@ -262,6 +274,9 @@ model Lead {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   activites Activite[]
+
+  @@index([statut])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Activite {
@@ -310,6 +325,8 @@ model Contact {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   dossiers   Dossier[]
+
+  @@index([email])
 }
 
 model Dossier {
@@ -325,4 +342,8 @@ model Dossier {
   contact      Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([contactId])
+  @@index([statut])
+  @@index([type, statut])
 }

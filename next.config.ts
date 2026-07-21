@@ -66,17 +66,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirections utiles
-  async redirects() {
-    return [
-      {
-        source: "/admin",
-        destination: "/admin/dashboard",
-        permanent: false,
-      },
-    ];
-  },
-
   // Compression
   compress: true,
 

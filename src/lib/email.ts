@@ -124,11 +124,12 @@ async function sendWithResend({ to, subject, html }: EmailOptions): Promise<Emai
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<EmailResult> {
   // En dev sans clé Resend : log dans la console
   if (!resend && !hasSmtpConfig()) {
-    console.log("\n📧 EMAIL (mode dev — pas envoyé)");
-    console.log(`   To: ${to}`);
-    console.log(`   Subject: ${subject}`);
-    console.log(`   Body: ${html.substring(0, 200)}...`);
-    console.log("");
+    logger.info("EMAIL mode dev — non envoyé", {
+      provider: "console",
+      to,
+      subject,
+      preview: html.substring(0, 200),
+    });
     return { success: true, dev: true, provider: "console" };
   }
 

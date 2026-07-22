@@ -19,12 +19,25 @@ const statutColors: Record<string, string> = {
 };
 
 const sourceLabels: Record<string, string> = {
+  CONTACT: "Contact",
+  ESTIMATION: "Estimation",
+  VISITE: "Visite",
+  RECHERCHE: "Recherche",
   SITE_WEB: "Site web",
   PARTENAIRE: "Partenaire",
   RECOMMANDATION: "Recommandation",
   APPEL_ENTRANT: "Appel entrant",
   RESEAU_SOCIAL: "Réseau social",
   AUTRE: "Autre",
+};
+
+const sourceColors: Record<string, string> = {
+  CONTACT: "bg-sky-100 text-sky-700",
+  ESTIMATION: "bg-violet-100 text-violet-700",
+  VISITE: "bg-emerald-100 text-emerald-700",
+  RECHERCHE: "bg-orange-100 text-orange-700",
+  PARTENAIRE: "bg-amber-100 text-amber-700",
+  SITE_WEB: "bg-gray-100 text-gray-600",
 };
 
 interface PageProps {
@@ -101,7 +114,11 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
                       )}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{sourceLabels[lead.source] || lead.source.replace(/_/g, " ")}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sourceColors[lead.source] || "bg-gray-100 text-gray-600"}`}>
+                      {sourceLabels[lead.source] || lead.source.replace(/_/g, " ")}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statutColors[lead.statut] || "bg-gray-100 text-gray-700"}`}>
                       {lead.statut.replace(/_/g, " ")}

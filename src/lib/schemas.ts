@@ -78,6 +78,34 @@ export const demandeRechercheSchema = z.object({
   telephone: z.string().trim().regex(phoneRegex, "Téléphone invalide").optional().or(z.literal("")),
 });
 
+export const estimationSchema = z.object({
+  type: z.enum(["APPARTEMENT", "MAISON", "STUDIO", "COMMERCE", "BUREAU", "TERRAIN"]),
+  surface: z.coerce.number().positive("Surface invalide").max(10_000),
+  nbPieces: z.coerce.number().int().min(1).max(50),
+  nbChambres: z.union([z.coerce.number().int().min(0).max(50), z.literal(""), z.null()]).optional(),
+  etage: z.union([z.coerce.number().int().min(-5).max(200), z.literal(""), z.null()]).optional(),
+  anneeConstruction: z.union([
+    z.coerce.number().int().min(1800).max(new Date().getFullYear()),
+    z.literal(""),
+    z.null(),
+  ]).optional(),
+  etat: z.string().trim().max(50).optional().or(z.literal("")),
+  parking: z.boolean().optional().default(false),
+  terrasse: z.boolean().optional().default(false),
+  balcon: z.boolean().optional().default(false),
+  cave: z.boolean().optional().default(false),
+  piscine: z.boolean().optional().default(false),
+  ascenseur: z.boolean().optional().default(false),
+  adresse: z.string().trim().max(300).optional().or(z.literal("")),
+  codePostal: z.string().trim().regex(postalCodeRegex, "Code postal invalide (5 chiffres)"),
+  ville: sanitizedString(100),
+  nom: sanitizedString(100),
+  prenom: z.string().trim().max(100).optional().or(z.literal("")),
+  email: z.string().trim().email("Email invalide").max(255),
+  telephone: z.string().trim().regex(phoneRegex, "Téléphone invalide").optional().or(z.literal("")),
+  commentaire: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+
 // ============================================
 // ADMIN — BIENS
 // ============================================

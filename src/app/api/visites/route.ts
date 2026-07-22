@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     await prisma.lead.create({
       data: {
         nom, prenom, email, telephone,
-        source: "SITE_WEB",
+        source: "VISITE",
         statut: "NOUVEAU",
         notes: `Demande de visite pour le bien ${bien?.titre || bienId}${financement ? ` — Financement: ${financement}` : ""}`,
       },

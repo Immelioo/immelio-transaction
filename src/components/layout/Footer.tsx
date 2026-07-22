@@ -1,22 +1,18 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/siteSettings";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 export default async function Footer() {
   const settings = await getSiteSettings();
 
   return (
-    <footer className="bg-primary text-white mt-auto">
+    <footer className="mt-auto bg-primary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">I</span>
-              </div>
-              <div>
-                <span className="text-xl font-bold">{settings.agency_name}</span>
-              </div>
+            <div className="mb-4">
+              <BrandLogo size="lg" />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
               {settings.footer_description}
@@ -79,7 +75,7 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-600 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-400 gap-4">
+        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-white/15 pt-8 text-sm text-gray-300 sm:flex-row">
           <p>&copy; {new Date().getFullYear()} Immelio Transaction. Tous droits réservés.</p>
           <div className="flex gap-4">
             <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>

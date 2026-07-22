@@ -1,6 +1,7 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ContactForm from "@/components/forms/ContactForm";
+import BrandLogo from "@/components/branding/BrandLogo";
 import { getSiteSettings } from "@/lib/siteSettings";
 import type { Metadata } from "next";
 
@@ -22,12 +23,15 @@ export default async function ContactPage() {
       <Header />
 
       {/* Hero */}
-      <section className="bg-primary text-white py-16">
+      <section className="bg-[linear-gradient(180deg,_#0b3b2c_0%,_#06261c_100%)] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-6 flex justify-center">
+            <BrandLogo size="md" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Contactez-<span className="text-accent">nous</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-[rgba(246,243,236,0.8)] max-w-2xl mx-auto">
             Une question, un projet ? Notre équipe est disponible pour vous accompagner.
           </p>
         </div>
@@ -111,7 +115,7 @@ export default async function ContactPage() {
 
           {/* Formulaire */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="bg-white rounded-xl shadow-sm border border-primary/10 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Envoyez-nous un message</h2>
               <p className="text-gray-500 mb-6">Remplissez le formulaire ci-dessous et nous vous recontacterons rapidement.</p>
               <ContactForm />

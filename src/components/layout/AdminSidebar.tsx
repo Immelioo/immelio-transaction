@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import MessagesBadge from "@/components/MessagesBadge";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 const menuItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" },
@@ -47,18 +48,12 @@ export default function AdminSidebar() {
       <aside className={`
         ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
         fixed md:static inset-y-0 left-0 z-50
-        w-64 bg-primary min-h-screen flex flex-col
+        w-64 bg-[linear-gradient(180deg,_#0b3b2c_0%,_#06261c_100%)] min-h-screen flex flex-col
         transition-transform duration-200
       `}>
         <div className="p-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">I</span>
-            </div>
-            <div>
-              <span className="font-bold text-white">Immelio</span>
-              <span className="font-bold text-accent"> Transaction</span>
-            </div>
+          <Link href="/" className="inline-flex items-center">
+            <BrandLogo size="sm" />
           </Link>
           {/* Close button mobile */}
           <button onClick={() => setOpen(false)} className="md:hidden text-gray-400 hover:text-white">
@@ -67,7 +62,7 @@ export default function AdminSidebar() {
             </svg>
           </button>
         </div>
-        <p className="text-xs text-gray-400 px-6 -mt-3 mb-2">CRM Administration</p>
+        <p className="px-6 -mt-1 mb-3 text-xs uppercase tracking-[0.18em] text-[rgba(246,243,236,0.62)]">CRM Administration</p>
 
         <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {

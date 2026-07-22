@@ -365,6 +365,50 @@ export function emailConfirmationContact(params: {
   };
 }
 
+export function emailConfirmationEstimation(params: {
+  prenom: string;
+  type: string;
+  surface: string;
+  ville: string;
+}) {
+  return {
+    subject: "Votre demande d'estimation a bien été reçue — Immelio Transaction",
+    html: `
+      ${HEADER}
+      <div style="padding: 32px; font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1e3a5f;">Bonjour ${params.prenom || "à vous"},</h2>
+
+        <p style="font-size: 16px; line-height: 1.6;">
+          Nous avons bien reçu votre demande d'estimation gratuite et nous vous en remercions.
+        </p>
+
+        <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 24px 0; border-left: 4px solid #d4a853;">
+          <h3 style="margin: 0 0 12px 0; color: #1e3a5f;">Récapitulatif</h3>
+          <p style="margin: 4px 0;"><strong>Type :</strong> ${params.type}</p>
+          <p style="margin: 4px 0;"><strong>Surface :</strong> ${params.surface} m²</p>
+          <p style="margin: 4px 0;"><strong>Ville :</strong> ${params.ville}</p>
+        </div>
+
+        <p style="font-size: 16px; line-height: 1.6;">
+          Notre équipe va vous recontacter sous <strong>24 à 48 heures ouvrées</strong>
+          avec une estimation personnalisée de votre bien.
+        </p>
+
+        <a href="${SITE_URL}/contact"
+           style="display: inline-block; background: #1e3a5f; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 16px;">
+          Contacter l'agence
+        </a>
+
+        <p style="margin-top: 32px; color: #666;">
+          Cordialement,<br/>
+          <strong>L'équipe Immelio Transaction</strong>
+        </p>
+      </div>
+      ${FOOTER}
+    `,
+  };
+}
+
 /**
  * B3 — Notification admin : nouvelle demande d'estimation
  */

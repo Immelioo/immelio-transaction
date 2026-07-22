@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 const avantages = [
   { icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4", label: "Accès catalogue exclusif", desc: "Biens anciens & programmes neufs en avant-première" },
@@ -73,12 +74,15 @@ export default function DevenirPartenaireForm() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-primary text-white py-16">
+      <section className="bg-[linear-gradient(180deg,_#0b3b2c_0%,_#06261c_100%)] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-6 flex justify-center">
+            <BrandLogo size="md" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Devenez <span className="text-accent">Partenaire</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-[rgba(246,243,236,0.8)] max-w-2xl mx-auto">
             Rejoignez le réseau Immelio Transaction et développez votre activité immobilière
             avec des outils exclusifs et des commissions attractives.
           </p>
@@ -86,11 +90,11 @@ export default function DevenirPartenaireForm() {
       </section>
 
       {/* Avantages */}
-      <section className="bg-gray-50 py-12">
+      <section className="bg-[rgba(236,231,220,0.45)] py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {avantages.map((a) => (
-              <div key={a.label} className="bg-white rounded-xl p-5 border border-gray-100 text-center">
+              <div key={a.label} className="bg-white rounded-xl p-5 border border-primary/10 text-center shadow-sm">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={a.icon} />
@@ -111,27 +115,27 @@ export default function DevenirPartenaireForm() {
           <p className="text-gray-500">Remplissez ce formulaire, notre équipe vous contacte sous 48h.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
               <input required value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+                className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
               <input required value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+                className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email professionnel *</label>
               <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+                className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
               <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+                className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary" />
             </div>
           </div>
 
@@ -139,14 +143,14 @@ export default function DevenirPartenaireForm() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Nom de votre agence / entreprise *</label>
             <input required value={form.entreprise} onChange={(e) => setForm({ ...form, entreprise: e.target.value })}
               placeholder="Ex : Dupont Immobilier"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" />
+              className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Message (optionnel)</label>
             <textarea rows={4} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
               placeholder="Présentez votre activité, votre zone géographique, vos attentes..."
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none" />
+              className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary resize-none" />
           </div>
 
           <button type="submit" disabled={status === "loading"}

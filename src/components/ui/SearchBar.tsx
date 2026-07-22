@@ -16,24 +16,26 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-3 sm:p-4 shadow-2xl max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto rounded-lg border border-white/15 bg-[rgba(246,243,236,0.95)] p-3 sm:p-4 shadow-[0_24px_60px_rgba(4,24,18,0.24)] backdrop-blur-md">
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Ville</label>
+          <label htmlFor="search-ville" className="mb-1 block text-xs font-medium uppercase tracking-[0.18em] text-primary/65">Ville</label>
           <input
+            id="search-ville"
             type="text"
             value={ville}
             onChange={(e) => setVille(e.target.value)}
             placeholder="Lyon, Paris, Marseille..."
-            className="w-full px-3 py-2.5 bg-gray-50 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:bg-white border-0 outline-none"
+            className="w-full rounded-lg border border-primary/10 bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/15"
           />
         </div>
         <div className="sm:w-40">
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Type</label>
+          <label htmlFor="search-type" className="mb-1 block text-xs font-medium uppercase tracking-[0.18em] text-primary/65">Type</label>
           <select
+            id="search-type"
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full px-3 py-2.5 bg-gray-50 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:bg-white border-0 outline-none"
+            className="w-full rounded-lg border border-primary/10 bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/15"
           >
             <option value="">Tous</option>
             <option value="APPARTEMENT">Appartement</option>
@@ -45,11 +47,12 @@ export default function SearchBar() {
           </select>
         </div>
         <div className="sm:w-40">
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Budget max</label>
+          <label htmlFor="search-budget" className="mb-1 block text-xs font-medium uppercase tracking-[0.18em] text-primary/65">Budget max</label>
           <select
+            id="search-budget"
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-            className="w-full px-3 py-2.5 bg-gray-50 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:bg-white border-0 outline-none"
+            className="w-full rounded-lg border border-primary/10 bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-primary/30 focus:ring-2 focus:ring-primary/15"
           >
             <option value="">Tous</option>
             <option value="200000">200 000 €</option>
@@ -62,7 +65,7 @@ export default function SearchBar() {
         <div className="flex items-end">
           <button
             onClick={handleSearch}
-            className="w-full sm:w-auto px-6 py-2.5 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition-all flex items-center justify-center gap-2 shadow-lg"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-accent/35 bg-accent px-6 py-2.5 font-semibold text-primary-dark shadow-[0_12px_28px_rgba(200,161,90,0.24)] transition-all hover:brightness-105 sm:w-auto"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

@@ -54,6 +54,13 @@ export default function EstimationWizard() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  function handleTypeSelection(value: string) {
+    setStepError("");
+    setErrorMsg("");
+    setForm((f) => ({ ...f, type: value }));
+    setEtape(2);
+  }
+
   function canNext(): boolean {
     if (etape === 1) return !!form.type;
     if (etape === 2) return !!form.surface && !!form.nbPieces;
@@ -84,15 +91,31 @@ export default function EstimationWizard() {
     setStatus("loading");
     setErrorMsg("");
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/estimations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nom: `${form.prenom} ${form.nom}`.trim(),
+          type: form.type,
+          surface: form.surface,
+          nbPieces: form.nbPieces,
+          nbChambres: form.nbChambres,
+          etage: form.etage,
+          anneeConstruction: form.anneeConstruction,
+          etat: form.etat,
+          parking: form.parking,
+          terrasse: form.terrasse,
+          balcon: form.balcon,
+          cave: form.cave,
+          piscine: form.piscine,
+          ascenseur: form.ascenseur,
+          adresse: form.adresse,
+          codePostal: form.codePostal,
+          ville: form.ville,
+          nom: form.nom,
+          prenom: form.prenom,
           email: form.email,
-          telephone: form.telephone || undefined,
-          sujet: `Demande d'estimation — ${form.type} ${form.surface}m² à ${form.ville}`,
-          message: `Type: ${form.type}\nSurface: ${form.surface}m²\nPièces: ${form.nbPieces}\nChambres: ${form.nbChambres || "N/A"}\nÉtage: ${form.etage || "N/A"}\nAnnée: ${form.anneeConstruction || "N/A"}\nÉtat: ${form.etat || "N/A"}\nAdresse: ${form.adresse || "N/A"}, ${form.codePostal} ${form.ville}\nÉquipements: ${[form.parking && "Parking", form.terrasse && "Terrasse", form.balcon && "Balcon", form.cave && "Cave", form.piscine && "Piscine", form.ascenseur && "Ascenseur"].filter(Boolean).join(", ") || "Aucun"}\n\nCommentaire: ${form.commentaire || "Aucun"}`,
+          telephone: form.telephone,
+          commentaire: form.commentaire,
         }),
       });
       if (res.ok) {
@@ -133,14 +156,19 @@ export default function EstimationWizard() {
 
   return (
     <>
-      <section className="bg-primary text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+      <section className="bg-primary text-white py-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 text-sm text-blue-200 px-3 py-1 rounded-full mb-4">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            100 % gratuit · Sans engagement
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-3">
             Estimation <span className="text-accent">gratuite</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-blue-200 max-w-xl mx-auto">
             Obtenez une estimation professionnelle de votre bien en quelques minutes.
-            Gratuit et sans engagement.
           </p>
         </div>
       </section>
@@ -184,7 +212,7 @@ export default function EstimationWizard() {
                   <button
                     key={t.value}
                     type="button"
-                    onClick={() => update("type", t.value)}
+                    onClick={() => handleTypeSelection(t.value)}
                     className={`p-4 rounded-xl border-2 text-center transition-all ${
                       form.type === t.value
                         ? "border-primary bg-slate-100 ring-2 ring-primary ring-offset-1"
@@ -210,33 +238,33 @@ export default function EstimationWizard() {
               <p className="text-gray-500 mb-6">Décrivez les principales caractéristiques.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Surface (m²) *</label>
-                  <input type="number" value={form.surface} onChange={(e) => update("surface", e.target.value)}
+                  <label htmlFor="estimation-surface" className="block text-sm font-medium text-gray-700 mb-1">Surface (m²) *</label>
+                  <input id="estimation-surface" type="number" inputMode="decimal" value={form.surface} onChange={(e) => update("surface", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 75" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de pièces *</label>
-                  <input type="number" value={form.nbPieces} onChange={(e) => update("nbPieces", e.target.value)}
+                  <label htmlFor="estimation-pieces" className="block text-sm font-medium text-gray-700 mb-1">Nombre de pièces *</label>
+                  <input id="estimation-pieces" type="number" inputMode="numeric" value={form.nbPieces} onChange={(e) => update("nbPieces", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 3" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de chambres</label>
-                  <input type="number" value={form.nbChambres} onChange={(e) => update("nbChambres", e.target.value)}
+                  <label htmlFor="estimation-chambres" className="block text-sm font-medium text-gray-700 mb-1">Nombre de chambres</label>
+                  <input id="estimation-chambres" type="number" inputMode="numeric" value={form.nbChambres} onChange={(e) => update("nbChambres", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Étage</label>
-                  <input type="number" value={form.etage} onChange={(e) => update("etage", e.target.value)}
+                  <label htmlFor="estimation-etage" className="block text-sm font-medium text-gray-700 mb-1">Étage</label>
+                  <input id="estimation-etage" type="number" inputMode="numeric" value={form.etage} onChange={(e) => update("etage", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 3" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Année de construction</label>
-                  <input type="number" value={form.anneeConstruction} onChange={(e) => update("anneeConstruction", e.target.value)}
+                  <label htmlFor="estimation-annee" className="block text-sm font-medium text-gray-700 mb-1">Année de construction</label>
+                  <input id="estimation-annee" type="number" inputMode="numeric" value={form.anneeConstruction} onChange={(e) => update("anneeConstruction", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 1990" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">État général</label>
-                  <select value={form.etat} onChange={(e) => update("etat", e.target.value)}
+                  <label htmlFor="estimation-etat" className="block text-sm font-medium text-gray-700 mb-1">État général</label>
+                  <select id="estimation-etat" value={form.etat} onChange={(e) => update("etat", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                     <option value="">Sélectionnez</option>
                     <option value="Neuf">Neuf</option>
@@ -285,19 +313,19 @@ export default function EstimationWizard() {
               <p className="text-gray-500 mb-6">Indiquez l&apos;adresse du bien à estimer.</p>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
-                  <input value={form.adresse} onChange={(e) => update("adresse", e.target.value)}
+                  <label htmlFor="estimation-adresse" className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                  <input id="estimation-adresse" value={form.adresse} onChange={(e) => update("adresse", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 15 rue de la République" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Code postal *</label>
-                    <input value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)}
+                    <label htmlFor="estimation-code-postal" className="block text-sm font-medium text-gray-700 mb-1">Code postal *</label>
+                    <input id="estimation-code-postal" inputMode="numeric" autoComplete="postal-code" value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: 69001" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
-                    <input value={form.ville} onChange={(e) => update("ville", e.target.value)}
+                    <label htmlFor="estimation-ville" className="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                    <input id="estimation-ville" autoComplete="address-level2" value={form.ville} onChange={(e) => update("ville", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ex: Lyon" />
                   </div>
                 </div>
@@ -312,31 +340,31 @@ export default function EstimationWizard() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-                    <input value={form.prenom} onChange={(e) => update("prenom", e.target.value)}
+                    <label htmlFor="estimation-prenom" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                    <input id="estimation-prenom" autoComplete="given-name" value={form.prenom} onChange={(e) => update("prenom", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Votre prénom" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-                    <input required value={form.nom} onChange={(e) => update("nom", e.target.value)}
+                    <label htmlFor="estimation-nom" className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                    <input id="estimation-nom" required autoComplete="family-name" value={form.nom} onChange={(e) => update("nom", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Votre nom" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                    <input type="email" required value={form.email} onChange={(e) => update("email", e.target.value)}
+                    <label htmlFor="estimation-email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                    <input id="estimation-email" type="email" required autoComplete="email" value={form.email} onChange={(e) => update("email", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="votre@email.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-                    <input type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)}
+                    <label htmlFor="estimation-telephone" className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <input id="estimation-telephone" type="tel" inputMode="tel" autoComplete="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="06 12 34 56 78" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Commentaire (optionnel)</label>
-                  <textarea rows={3} value={form.commentaire} onChange={(e) => update("commentaire", e.target.value)}
+                  <label htmlFor="estimation-commentaire" className="block text-sm font-medium text-gray-700 mb-1">Commentaire (optionnel)</label>
+                  <textarea id="estimation-commentaire" rows={3} value={form.commentaire} onChange={(e) => update("commentaire", e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"
                     placeholder="Précisions supplémentaires sur votre bien..." />
                 </div>

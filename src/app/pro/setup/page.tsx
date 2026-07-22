@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 interface InviteInfo {
   prenom: string;
@@ -79,22 +80,16 @@ function SetupForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4">
+    <div className="min-h-screen bg-[linear-gradient(180deg,_#f6f3ec_0%,_#efe8da_100%)] flex flex-col justify-center py-12 px-4">
       <div className="max-w-md mx-auto w-full">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl">I</span>
-            </div>
-            <div>
-              <span className="text-2xl font-bold text-primary">Immelio</span>
-              <span className="text-2xl font-bold text-accent"> Transaction</span>
-            </div>
+          <Link href="/" className="inline-flex items-center">
+            <BrandLogo size="md" priority />
           </Link>
         </div>
 
         {status === "loading" && (
-          <div className="bg-white rounded-xl p-8 border border-gray-100 text-center">
+          <div className="bg-white rounded-xl p-8 border border-primary/10 text-center shadow-sm">
             <svg className="w-8 h-8 animate-spin text-primary mx-auto mb-3" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -104,7 +99,7 @@ function SetupForm() {
         )}
 
         {status === "invalid" && (
-          <div className="bg-white rounded-xl p-8 border border-red-200 text-center">
+          <div className="bg-white rounded-xl p-8 border border-red-200 text-center shadow-sm">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -119,7 +114,7 @@ function SetupForm() {
         )}
 
         {status === "expired" && (
-          <div className="bg-white rounded-xl p-8 border border-amber-200 text-center">
+          <div className="bg-white rounded-xl p-8 border border-amber-200 text-center shadow-sm">
             <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -136,7 +131,7 @@ function SetupForm() {
         )}
 
         {status === "done" && (
-          <div className="bg-white rounded-xl p-8 border border-green-200 text-center">
+          <div className="bg-white rounded-xl p-8 border border-green-200 text-center shadow-sm">
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -148,7 +143,7 @@ function SetupForm() {
         )}
 
         {status === "valid" && inviteInfo && (
-          <div className="bg-white rounded-xl p-8 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-xl p-8 border border-primary/10 shadow-sm">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
               Bienvenue, {inviteInfo.prenom} !
             </h1>
@@ -172,7 +167,7 @@ function SetupForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="8 caractères minimum"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary"
                 />
               </div>
               <div>
@@ -185,7 +180,7 @@ function SetupForm() {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   placeholder="Répétez le mot de passe"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  className="w-full px-4 py-2.5 border border-primary/15 rounded-lg focus:ring-2 focus:ring-primary/15 focus:border-primary"
                 />
               </div>
 

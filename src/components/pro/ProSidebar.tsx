@@ -5,6 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useProUser, proLogout } from "@/hooks/useProUser";
 import MessagesBadge from "@/components/MessagesBadge";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 const menuItems = [
   {
@@ -52,7 +53,7 @@ export default function ProSidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 flex items-center gap-3 px-4 h-14">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center gap-3 border-b border-primary/10 bg-[rgba(246,243,236,0.97)] px-4 h-14">
         <button
           onClick={() => setOpen(true)}
           className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"
@@ -62,12 +63,8 @@ export default function ProSidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">I</span>
-          </div>
-          <span className="font-bold text-primary">Immelio</span>
-          <span className="font-bold text-accent">Transaction</span>
+        <Link href="/" className="inline-flex items-center">
+          <BrandLogo size="sm" />
         </Link>
       </div>
 
@@ -81,20 +78,14 @@ export default function ProSidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[linear-gradient(180deg,_#fbf9f4_0%,_#f1ebdf_100%)] border-r border-primary/10 flex flex-col transition-transform
           ${open ? "translate-x-0" : "-translate-x-full"} md:static md:translate-x-0 md:flex md:shrink-0`}
       >
-        <div className="p-6 border-b border-gray-100">
-          <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-lg">I</span>
-            </div>
-            <div className="leading-tight">
-              <span className="font-bold text-primary">Immelio</span>
-              <span className="font-bold text-accent"> Transaction</span>
-            </div>
+        <div className="border-b border-primary/10 p-6">
+          <Link href="/" className="inline-flex items-center" onClick={() => setOpen(false)}>
+            <BrandLogo size="sm" />
           </Link>
-          <p className="text-xs text-gray-500 mt-2">Espace Partenaire</p>
+          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-primary/60">Espace Partenaire</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -137,7 +128,7 @@ export default function ProSidebar() {
           </div>
         )}
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="border-t border-primary/10 p-4">
           <button
             onClick={() => proLogout()}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"

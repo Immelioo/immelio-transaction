@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #1a365d;
-  --color-primary-light: #2a4a7f;
-  --color-primary-dark: #0f2440;
-  --color-accent: #c89b3c;
-  --color-accent-light: #d4ab5c;
+  --color-primary: #0b3b2c;
+  --color-primary-light: #145641;
+  --color-primary-dark: #06261c;
+  --color-accent: #c8a15a;
+  --color-accent-light: #d8b97f;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
+  --color-surface: #f6f3ec;
+  --color-surface-muted: #ece7dc;
+  --color-ink: #1a2c22;
+  --color-line: #d9d3c6;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, white);
+  color: var(--color-primary-dark);
 }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #b8b09f; border-radius: 3px; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }

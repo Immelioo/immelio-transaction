@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         prenom,
         email,
         telephone: telephone || null,
-        source: "SITE_WEB",
+        source: "CONTACT",
         statut: "NOUVEAU",
         notes: `Sujet: ${sujet}\n\n${message}`,
       },

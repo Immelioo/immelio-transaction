@@ -6,6 +6,7 @@ import BienCard from "@/components/ui/BienCard";
 import AnimateOnScroll from "@/components/ui/AnimateOnScroll";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import SearchBar from "@/components/ui/SearchBar";
+import BrandLogo from "@/components/branding/BrandLogo";
 import { prisma } from "@/lib/prisma";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { formatPrix } from "@/lib/utils";
@@ -64,7 +65,7 @@ export default async function Home() {
       {/* ============================================ */}
       {/* HERO — avec barre de recherche               */}
       {/* ============================================ */}
-      <section className="relative overflow-hidden min-h-[650px] flex items-center">
+      <section className="relative flex min-h-[680px] items-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/images/hero-lyon.jpg"
@@ -74,17 +75,20 @@ export default async function Home() {
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/35 to-black/70" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,26,19,0.34)_0%,rgba(8,42,31,0.7)_58%,rgba(6,38,28,0.9)_100%)]" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 relative w-full">
           <div className="text-center mb-10">
+            <div className="mb-8 flex justify-center">
+              <BrandLogo size="lg" priority />
+            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 animate-[fadeInUp_0.8s_ease-out]">
               {siteSettings.hero_title_line_1}
-              <span className="text-accent"> {siteSettings.hero_title_highlight}</span>
+              <span className="text-accent-light"> {siteSettings.hero_title_highlight}</span>
               <br />
               {siteSettings.hero_title_line_2}
             </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-10 animate-[fadeInUp_1s_ease-out]">
+            <p className="text-xl text-[rgba(246,243,236,0.82)] max-w-2xl mx-auto mb-10 animate-[fadeInUp_1s_ease-out]">
               {siteSettings.hero_subtitle}
             </p>
           </div>
@@ -99,7 +103,7 @@ export default async function Home() {
       {/* ============================================ */}
       {/* STATS — compteurs animés                     */}
       {/* ============================================ */}
-      <section className="bg-white border-b border-gray-100">
+      <section className="border-b border-primary/8 bg-white/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
@@ -125,7 +129,7 @@ export default async function Home() {
       {/* ============================================ */}
       {/* COMMENT ÇA MARCHE — 3 étapes                 */}
       {/* ============================================ */}
-      <section className="py-20 bg-gray-50">
+      <section className="bg-[rgba(236,231,220,0.45)] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <div className="text-center mb-14">
@@ -173,9 +177,9 @@ export default async function Home() {
 
             <AnimateOnScroll delay={400}>
               <div className="relative text-center p-8">
-                <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 relative">
-                  <span className="text-3xl font-black text-green-600">3</span>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 bg-accent/15 rounded-2xl flex items-center justify-center mx-auto mb-6 relative">
+                  <span className="text-3xl font-black text-accent">3</span>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-accent rounded-full flex items-center justify-center">
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -192,7 +196,7 @@ export default async function Home() {
           <AnimateOnScroll delay={500}>
             <div className="text-center mt-10">
               <Link href="/demande-recherche"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-white rounded-xl font-semibold text-lg hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl">
+                className="inline-flex items-center gap-2 rounded-lg border border-accent/45 bg-accent px-8 py-4 text-lg font-semibold text-primary-dark transition-all shadow-[0_18px_40px_rgba(200,161,90,0.24)] hover:brightness-105">
                 Démarrer ma recherche
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -291,7 +295,7 @@ export default async function Home() {
                           </div>
                         )}
                         <div className="absolute top-3 left-3">
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[rgba(200,161,90,0.16)] text-primary">
                             Programme neuf
                           </span>
                         </div>
@@ -332,10 +336,45 @@ export default async function Home() {
       )}
 
       {/* ============================================ */}
+      {/* CTA ESTIMATION GRATUITE                       */}
+      {/* ============================================ */}
+      <section className="bg-gradient-to-r from-primary to-[#162d4f] py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-white/10 text-white text-sm font-medium px-3 py-1 rounded-full mb-4">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                100 % gratuit · Sans engagement · Réponse sous 48h
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                Vous souhaitez vendre votre bien ?
+              </h2>
+              <p className="text-blue-200 max-w-xl text-base">
+                Obtenez une estimation professionnelle et personnalisée. Nos experts vous répondent rapidement.
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Link
+                href="/estimation"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-white rounded-xl font-semibold text-lg hover:bg-accent/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                Estimer mon bien
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
       {/* TÉMOIGNAGES                                   */}
       {/* ============================================ */}
       {temoignages.length > 0 && (
-      <section className="py-20 bg-primary/5">
+      <section className="bg-[rgba(236,231,220,0.55)] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <div className="text-center mb-14">
@@ -387,7 +426,7 @@ export default async function Home() {
       {/* ============================================ */}
       {/* QUI SOMMES-NOUS                               */}
       {/* ============================================ */}
-      <section id="qui-sommes-nous" className="py-20 bg-gray-50">
+      <section id="qui-sommes-nous" className="bg-[rgba(246,243,236,0.82)] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimateOnScroll>
             <div className="text-center mb-16">
@@ -464,9 +503,11 @@ export default async function Home() {
                 </div>
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">I</span>
-                    </div>
+                    <BrandLogo
+                      size="sm"
+                      framed={false}
+                      className="overflow-hidden rounded-lg shadow-[0_12px_24px_rgba(5,28,20,0.12)]"
+                    />
                     <div>
                       <h4 className="text-xl font-bold text-primary">Immelio Transaction</h4>
                       <p className="text-sm text-gray-500">Transaction immobilière</p>
@@ -645,23 +686,26 @@ export default async function Home() {
       {/* ============================================ */}
       {/* CTA PARTENAIRES                               */}
       {/* ============================================ */}
-      <section className="bg-accent/10 py-16">
+      <section className="bg-[linear-gradient(180deg,_rgba(11,59,44,0.96)_0%,_rgba(6,38,28,1)_100%)] py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <AnimateOnScroll>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Vous êtes professionnel ?</h2>
-            <p className="text-gray-600 text-lg mb-8">
+            <div className="mb-6 flex justify-center">
+              <BrandLogo size="md" />
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-white">Vous êtes professionnel ?</h2>
+            <p className="mb-8 text-lg text-[rgba(246,243,236,0.78)]">
               Rejoignez notre réseau de partenaires et accédez à des outils exclusifs pour développer votre activité.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/devenir-partenaire"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-semibold text-lg hover:bg-primary-dark transition-all shadow-lg hover:shadow-xl">
+                className="inline-flex items-center gap-2 rounded-lg border border-accent/40 bg-accent px-8 py-4 text-lg font-semibold text-primary-dark transition-all shadow-[0_18px_40px_rgba(0,0,0,0.18)] hover:brightness-105">
                 Devenir Partenaire
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
               <Link href="/pro/login"
-                className="inline-flex items-center gap-2 px-8 py-4 border-2 border-primary text-primary rounded-xl font-semibold text-lg hover:bg-primary/5 transition-all">
+                className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-white/6">
                 Déjà partenaire ? Se connecter
               </Link>
             </div>

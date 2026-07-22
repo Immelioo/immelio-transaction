@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import BrandLogo from "@/components/branding/BrandLogo";
 
 export default function AdminLoginForm() {
   const [email, setEmail] = useState("");
@@ -44,19 +45,17 @@ export default function AdminLoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(200,161,90,0.18),_transparent_34%),linear-gradient(180deg,_#0b3b2c_0%,_#06261c_100%)] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-2xl">I</span>
-            </div>
+            <BrandLogo size="md" priority />
           </Link>
-          <h1 className="text-2xl font-bold text-white mt-4">Administration CRM</h1>
-          <p className="text-gray-400 mt-1">Immelio Transaction</p>
+          <h1 className="mt-5 text-2xl font-bold text-white">Administration CRM</h1>
+          <p className="mt-1 text-sm text-[rgba(246,243,236,0.72)]">Pilotage interne Immelio Groupe Immobilier</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-xl">
+        <form onSubmit={handleSubmit} className="rounded-xl border border-white/10 bg-[rgba(246,243,236,0.98)] p-8 shadow-[0_24px_80px_rgba(3,18,13,0.32)]">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -64,7 +63,7 @@ export default function AdminLoginForm() {
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@immelio.fr" autoComplete="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full rounded-lg border border-primary/15 bg-white px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/15"
               />
             </div>
             <div>
@@ -73,7 +72,7 @@ export default function AdminLoginForm() {
                 type="password" required value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Votre mot de passe" autoComplete="current-password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full rounded-lg border border-primary/15 bg-white px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/15"
               />
             </div>
           </div>
@@ -89,7 +88,7 @@ export default function AdminLoginForm() {
 
           <button
             type="submit" disabled={loading}
-            className="w-full mt-6 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -109,7 +108,7 @@ export default function AdminLoginForm() {
           </div>
         </form>
 
-        <p className="text-center text-xs text-gray-500 mt-4">
+        <p className="mt-4 text-center text-xs text-[rgba(246,243,236,0.65)]">
           Connexion sécurisée — Session chiffrée HttpOnly
         </p>
       </div>

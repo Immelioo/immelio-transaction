@@ -5,6 +5,7 @@ import { contactSchema } from "@/lib/schemas";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 export async function POST(req: NextRequest) {
   // Rate limiting : 5 messages / minute par IP
@@ -32,8 +33,8 @@ export async function POST(req: NextRequest) {
     const prenom = parts[0] || "";
     const nomFamille = parts.slice(1).join(" ") || nom;
 
-    // Créer un lead dans le CRM
-    await prisma.lead.create({
+    // Créer un lead dans le CRM + activité de relance automatique
+    const lead = await prisma.lead.create({
       data: {
         nom: nomFamille,
         prenom,
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
         notes: `Sujet: ${sujet}\n\n${message}`,
       },
     });
+    void createAutoActivity(lead.id, "CONTACT");
 
     // Emails en parallèle (non bloquant)
     const adminEmail = emailNouveauContactAdmin({ nom, email, telephone, sujet, message });

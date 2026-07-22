@@ -4,6 +4,8 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { createPartnershipRequest } from "@/lib/partnershipRequest";
 import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 const phoneRegex = /^[0-9\s+\-.()]{6,20}$/;
 
@@ -47,9 +49,24 @@ export async function POST(req: NextRequest) {
       origin: "PORTAIL_PARTENAIRE",
     });
 
+    // Créer un lead B2B dans le pipeline CRM
+    const b2bLead = await prisma.lead.create({
+      data: {
+        nom: parsed.data.nom,
+        prenom: parsed.data.prenom,
+        email: parsed.data.email.toLowerCase(),
+        telephone: parsed.data.telephone || null,
+        source: "PARTENARIAT",
+        statut: "NOUVEAU",
+        notes: `[B2B] Partenariat via portail — ${parsed.data.societe}, ${parsed.data.ville}${parsed.data.message ? `\n\n${parsed.data.message}` : ""}`,
+      },
+    });
+    void createAutoActivity(b2bLead.id, "PARTENARIAT");
+
     logger.info("Demande de partenariat créée", {
       contactId: contact.id,
       dossierId: dossier.id,
+      leadId: b2bLead.id,
       email,
       ip,
     });

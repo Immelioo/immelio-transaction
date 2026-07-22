@@ -4,6 +4,7 @@ import { demandeRechercheSchema } from "@/lib/schemas";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await prisma.lead.create({
+    const rechLead = await prisma.lead.create({
       data: {
         nom, prenom, email, telephone,
         source: "RECHERCHE",
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
         notes: `Demande de recherche : ${type} ${transaction} à ${ville || "non précisé"}`,
       },
     });
+    void createAutoActivity(rechLead.id, "RECHERCHE");
 
     logger.info("Demande de recherche créée", { demandeId: demande.id, ip });
 

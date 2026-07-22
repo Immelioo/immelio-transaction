@@ -5,6 +5,7 @@ import { visiteSchema } from "@/lib/schemas";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -45,8 +46,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Créer un lead automatiquement (CRM)
-    await prisma.lead.create({
+    // Créer un lead automatiquement (CRM) + activité de relance
+    const visiteLead = await prisma.lead.create({
       data: {
         nom, prenom, email, telephone,
         source: "VISITE",
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
         notes: `Demande de visite pour le bien ${bien?.titre || bienId}${financement ? ` — Financement: ${financement}` : ""}`,
       },
     });
+    void createAutoActivity(visiteLead.id, "VISITE");
 
     // ✉️ A1 — Email de confirmation au client (async, ne bloque pas la réponse)
     const dateFormatee = new Date(dateSouhaitee).toLocaleDateString("fr-FR", {

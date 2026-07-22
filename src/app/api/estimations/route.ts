@@ -9,6 +9,7 @@ import { estimationSchema } from "@/lib/schemas";
 import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 function formatOptionalNumber(value: number | "" | null | undefined) {
   if (value === "" || value === null || value === undefined) return "N/A";
@@ -95,6 +96,8 @@ export async function POST(req: NextRequest) {
         notes: `[ESTIMATION]\n${details}`,
       },
     });
+
+    void createAutoActivity(lead.id, "ESTIMATION");
 
     const adminEmail = emailNouvelleEstimationAdmin({
       nom: fullName || nom,

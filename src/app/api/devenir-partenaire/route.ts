@@ -5,6 +5,8 @@ import { checkRateLimit, getClientIp, RATE_LIMITS } from "@/lib/rateLimit";
 import { rateLimitResponse } from "@/lib/auth";
 import { createPartnershipRequest } from "@/lib/partnershipRequest";
 import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import { createAutoActivity } from "@/lib/leadAutomation";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.immelio.fr";
 
@@ -49,6 +51,20 @@ export async function POST(req: NextRequest) {
       entreprise,
     });
     const prefillUrl = `${SITE_URL}/admin/partenaires/nouveau?${params.toString()}`;
+
+    // Créer un lead B2B dans le pipeline CRM
+    const b2bLead = await prisma.lead.create({
+      data: {
+        nom,
+        prenom,
+        email,
+        telephone: telephone || null,
+        source: "PARTENARIAT",
+        statut: "NOUVEAU",
+        notes: `[B2B] Demande partenariat — ${entreprise}${message ? `\n\n${message}` : ""}`,
+      },
+    });
+    void createAutoActivity(b2bLead.id, "PARTENARIAT");
 
     const adminEmail = emailDemandePartenariat({ prenom, nom, email, telephone, entreprise, message, prefillUrl });
     await sendEmail({ to: adminEmail.to, subject: adminEmail.subject, html: adminEmail.html });
